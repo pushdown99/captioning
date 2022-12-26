@@ -41,6 +41,7 @@
 *.fatbin
 
 tf2/
+bak/
 model/
 temp/
 data/COCO
