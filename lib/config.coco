@@ -1,0 +1,36 @@
+import os
+from os.path import join
+from easydict import EasyDict as edict
+
+cfg = edict()
+
+cfg.DATA = edict()
+cfg.DATA.NAME       = 'coco'
+cfg.DATA.ROOT_DIR   = 'data/COCO'
+cfg.DATA.DATA_DIR   = 'annotations'
+cfg.DATA.DATA_SIZE  = 'full' # small | fat | full
+cfg.DATA.PREFIX     = '2014'
+cfg.DATA.CAP_FILE   = 'caption' + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
+cfg.DATA.TRAIN_FILE = 'train'   + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
+cfg.DATA.VALID_FILE = 'valid'   + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
+cfg.DATA.TEST_FILE  = 'test'    + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
+cfg.DATA.CAPTIONS   = 5
+cfg.DATA.IMAGE_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'images'       + cfg.DATA.PREFIX + '.json')
+cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'description_' + cfg.DATA.PREFIX + '.json')
+cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'train_'       + cfg.DATA.PREFIX + '.json')
+cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'valid_'       + cfg.DATA.PREFIX + '.json')
+cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'test_'        + cfg.DATA.PREFIX + '.json')
+cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'text_'        + cfg.DATA.PREFIX + '.json')
+cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'tokenize_'    + cfg.DATA.PREFIX + '.pkl')
+
+cfg.MODEL = edict()
+cfg.MODEL.NAME           = 'efficientnetb0'
+cfg.MODEL.IMAGE_SHAPE    = (299,299)
+cfg.MODEL.MAX_VOCAB_SIZE = 2000000
+cfg.MODEL.SEQ_LENGTH     = 25
+cfg.MODEL.BATCH_SIZE     = 64
+cfg.MODEL.SHUFFLE_DIM    = 512
+cfg.MODEL.EMBED_DIM      = 512
+cfg.MODEL.FF_DIM         = 1024
+cfg.MODEL.NUM_HEADS      = 6
+
