@@ -33,5 +33,17 @@
 
 ######################
 
+*.i
+*.ii
+*.gpu
+*.ptx
+*.cubin
+*.fatbin
+
 tf2/
-data/
+model/
+temp/
+data/COCO
+data/GENOME
+data/NIA
+data/VOC

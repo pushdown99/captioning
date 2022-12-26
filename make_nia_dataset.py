@@ -14,12 +14,12 @@ from _pickle import dump,load
 from os.path import join, basename
 from json.decoder import JSONDecodeError as error
 from easydict import EasyDict as edict
-from hanspell import spell_checker
 
 cfg = edict ()
 cfg.ROOT_DIR     = 'data/NIA'
 cfg.DATA_DIR     = 'annotations'
 cfg.JSON_DIR     = join(cfg.ROOT_DIR, 'download/4-3')
+cfg.TEMP_DIR     = 'temp'
 cfg.CORPUS_JSON  = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'corpus.json')
 cfg.NORMAL_SIZE  = 1.0
 cfg.FAT_SIZE     = 0.5
@@ -29,14 +29,14 @@ cfg.VALID_SIZE   = 0.1
 cfg.TEST_SIZE    = 0.1
 cfg.CAPTION      = 10
 
-cfg.IMG_JSON     = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'img.json')
-cfg.IMG_PKL      = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'img.pkl')
-cfg.N43_JSON     = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'n43.json')
-cfg.N43_PKL      = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'n43.pkl')
-cfg.CLASS_JSON   = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'full_classes.json')
-cfg.CLASS_PKL    = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'full_classes.pkl')
-cfg.CAPTION_JSON = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'full_caption.json')
-cfg.CAPTION_PKL  = join(cfg.ROOT_DIR, cfg.DATA_DIR, 'full_caption.pkl')
+cfg.IMG_JSON     = join(cfg.TEMP_DIR, 'img.json')
+cfg.IMG_PKL      = join(cfg.TEMP_DIR, 'img.pkl')
+cfg.N43_JSON     = join(cfg.TEMP_DIR, 'n43.json')
+cfg.N43_PKL      = join(cfg.TEMP_DIR, 'n43.pkl')
+cfg.CLASS_JSON   = join(cfg.TEMP_DIR, 'full_classes.json')
+cfg.CLASS_PKL    = join(cfg.TEMP_DIR, 'full_classes.pkl')
+cfg.CAPTION_JSON = join(cfg.TEMP_DIR, 'full_caption.json')
+cfg.CAPTION_PKL  = join(cfg.TEMP_DIR, 'full_caption.pkl')
 
 corpus = json.load(codecs.open(cfg.CORPUS_JSON,  'r', 'utf-8-sig'))
 
