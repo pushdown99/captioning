@@ -10,18 +10,24 @@ cfg.DATA.ROOT_DIR   = 'data/COCO'
 cfg.DATA.DATA_DIR   = 'annotations'
 cfg.DATA.DATA_SIZE  = 'full' # small | fat | full
 cfg.DATA.PREFIX     = '2014'
-cfg.DATA.CAP_FILE   = 'caption' + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
-cfg.DATA.TRAIN_FILE = 'train'   + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
-cfg.DATA.VALID_FILE = 'valid'   + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
-cfg.DATA.TEST_FILE  = 'test'    + cfg.DATA.PREFIX + '_' + cfg.DATA.DATA_SIZE + '.txt'
 cfg.DATA.CAPTIONS   = 5
-cfg.DATA.IMAGE_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'images'       + cfg.DATA.PREFIX + '.json')
-cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'description_' + cfg.DATA.PREFIX + '.json')
-cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'train_'       + cfg.DATA.PREFIX + '.json')
-cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'valid_'       + cfg.DATA.PREFIX + '.json')
-cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'test_'        + cfg.DATA.PREFIX + '.json')
-cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'text_'        + cfg.DATA.PREFIX + '.json')
-cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'tokenize_'    + cfg.DATA.PREFIX + '.pkl')
+
+def cfg_dataset_size (size):
+  cfg.DATA.CAP_FILE   = 'caption' + cfg.DATA.PREFIX + '_' + size + '.txt'
+  cfg.DATA.TRAIN_FILE = 'train'   + cfg.DATA.PREFIX + '_' + size + '.txt'
+  cfg.DATA.VALID_FILE = 'valid'   + cfg.DATA.PREFIX + '_' + size + '.txt'
+  cfg.DATA.TEST_FILE  = 'test'    + cfg.DATA.PREFIX + '_' + size + '.txt'
+
+  cfg.DATA.IMAGE_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'images'       + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'description_' + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'train_'       + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'valid_'       + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'test_'        + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'text_'        + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'tokenize_'    + cfg.DATA.PREFIX + '_' + size + '.pkl')
+
+cfg_dataset_size (cfg.DATA.DATA_SIZE)
+
 
 cfg.MODEL = edict()
 cfg.MODEL.NAME           = 'efficientnetb0'

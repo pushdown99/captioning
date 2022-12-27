@@ -7,6 +7,7 @@ import codecs
 import pandas as pd
 import time
 import datetime
+from os.path import join,isfile
 
 from tensorflow.keras import layers
 from tensorflow import keras
@@ -50,18 +51,21 @@ def Display (file):
     out = climage.convert(file)
     print (out)
 
-def History (history, name):
+def History (history, path):
   now = time.localtime()
   for label in ["loss","val_loss"]:
     plt.plot(history.history[label],label=label)
   plt.legend()
   plt.xlabel("epochs")
   plt.ylabel("loss")
-  plt.savefig('data/history_' + name + '_' + time.strftime('%y%m%d', now) + '.png')
+  plt.savefig(path)
   plt.show()
 
 @tf.keras.utils.register_keras_serializable()
 class custom_schedule(tf.keras.optimizers.schedules.LearningRateSchedule):
+  def __del__ (self):
+    print('[-] custom_schedule deleted.')
+
   def __init__(self, d_model, warmup_steps=4000):
     super(custom_schedule, self).__init__()
 
@@ -81,7 +85,10 @@ class custom_schedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     }
     return config
 
-class TransformerEncoderBlock(layers.Layer):
+class TransformerEncoderBlock (layers.Layer):
+  def __del__ (self):
+    print('[-] TransformerEncoderBlock deleted.')
+
   def __init__(self, embed_dim, dense_dim, num_heads, **kwargs):
     super().__init__(**kwargs)
     self.embed_dim   = embed_dim
@@ -98,7 +105,10 @@ class TransformerEncoderBlock(layers.Layer):
 
     return proj_input
 
-class PositionalEmbedding(layers.Layer):
+class PositionalEmbedding (layers.Layer):
+  def __del__ (self):
+    print('[-] PositionalEmbedding deleted.')
+
   def __init__(self, sequence_length, vocab_size, embed_dim, **kwargs):
     super().__init__(**kwargs)
     self.token_embeddings    = layers.Embedding(input_dim=vocab_size, output_dim=embed_dim)
@@ -119,6 +129,9 @@ class PositionalEmbedding(layers.Layer):
     return tf.math.not_equal(inputs, 0)
 
 class TransformerDecoderBlock(layers.Layer):
+  def __del__ (self):
+    print('[-] TransformerDecoderBlock deleted.')
+
   def __init__(self, embed_dim, ff_dim, num_heads, seq_length, vocab_size, **kwargs):
     super().__init__(**kwargs)
     self.embed_dim   = embed_dim
@@ -185,6 +198,9 @@ class TransformerDecoderBlock(layers.Layer):
     return tf.tile(mask, mult)
 
 class ImageCaptioningModel(keras.Model):
+  def __del__ (self):
+    print('[-] ImageCaptioningModel deleted.')
+
   def __init__(self, cnn_model, encoder, decoder, num_captions_per_image=5,):
     super().__init__()
     self.cnn_model    = cnn_model
@@ -292,7 +308,7 @@ class TRANSFORMER:
   def tokenize (self, data, max_vocab_size, seq_length):
     cfg = self.cfg
 
-    if not os.path.isfile(cfg.DATA.TOKENIZE):
+    if not isfile(cfg.DATA.TOKENIZE):
       text_dataset = tf.data.Dataset.from_tensor_slices(data)
       self.TOKENIZER = tf.keras.layers.TextVectorization (
         max_tokens             = max_vocab_size,
@@ -374,8 +390,11 @@ class TRANSFORMER:
       'EPOCHS':         self.EPOCHS,
       'VOCAB_SIZE':     self.VOCAB_SIZE,
     }
-    path = 'data/{}_{}_e{}_{}_v{}_{}_{}_{}/'.format(dt.now().strftime('%Y%m%d'), self.dataname, self.EPOCHS, self.stopped_epoch, self.VOCAB_SIZE, len_of_train, len_of_valid, len_of_test)
+    cfg = self.cfg
+    path = '{}/{}_{}_e{}_{}_v{}_{}_{}_{}/'.format(cfg.DATA.MODEL_DIR, dt.now().strftime('%Y%m%d'), self.dataname, self.EPOCHS, self.stopped_epoch, self.VOCAB_SIZE, len_of_train, len_of_valid, len_of_test)
     os.makedirs(path, exist_ok=True)
+
+    History (history, path + 'history.png')
 
     json.dump(history.history, open(path + 'history.json', 'w'), indent=indent)
     json.dump(config, open(path + 'config.json', 'w'), indent=indent)
@@ -458,26 +477,33 @@ class TRANSFORMER:
     return caption
 
   def evaluate (self, path):
-    print ('Loading config     :', path + 'config.json')
-    with open(path + 'config.json') as f:
+    print ('[+] loading config     :', path + 'config.json')
+    with open(join(path,'config.json')) as f:
         config = json.load(f)
         print (config)
 
     SEQ_LENGTH = config['SEQ_LENGTH']
 
-    print ('Loading tokenizer  :', path + 'tokenizer')
-    tokenizer = tf.keras.models.load_model(path + 'tokenizer')
+    print ('[+] loading tokenizer  :', join(path, 'tokenizer'))
+    tokenizer = tf.keras.models.load_model(join(path, 'tokenizer'))
     tokenizer = tokenizer.layers[1]
 
-    print ('Get inference model:', path + 'cofnig.json')
-    model = self.get_inference_model(path + 'config.json')
+    print ('[+] get inference model:', join(path, 'cofnig.json'))
+    model = self.get_inference_model(join(path, 'config.json'))
 
-    print ('Loading weight     :', path + 'model_weight.h5')
-    model.load_weights(path + 'model_weight.h5')
+    print ('[+] loading weight     :', join(path, 'model_weight.h5'))
+    model.load_weights(join(path, 'model_weight.h5'))
 
     cfg = self.cfg
-    print ('Loading test data  :', cfg.DATA.TEST_JSON)
+    print ('[+] loading test data  :', cfg.DATA.TEST_JSON)
     tests = json.load(codecs.open(cfg.DATA.TRAIN_JSON,  'r', 'utf-8-sig'))
+
+    self.bleuc = 0
+    self.bleu1 = 0.0
+    self.bleu2 = 0.0
+    self.bleu3 = 0.0
+    self.bleu4 = 0.0
+
     for k in tests:
       actual, predicted = list(), list()
       cap = self.generate_caption(k, model, tokenizer, SEQ_LENGTH)
@@ -539,7 +565,6 @@ class TRANSFORMER:
       callbacks=[early_stopping],
       verbose = 1,
     )
-    History (history, cfg.DATA.NAME)
     self.stopped_epoch = early_stopping.stopped_epoch
     print('stopped_epoch: ', self.stopped_epoch)
 
@@ -601,6 +626,9 @@ class TRANSFORMER:
 
 
 class efficientnetb0 (TRANSFORMER):
+  def __del__ (self):
+    print('[-] efficientnetb0 deleted.')
+
   def __init__ (self, cfg, verbose=True):
     super().__init__(cfg, verbose)
 

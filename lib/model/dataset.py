@@ -19,6 +19,7 @@ from os.path import join
 from _pickle import dump,load
 
 from dataclasses import dataclass
+from config import cfg_dataset_size
 
 @dataclass
 class Box:
@@ -284,12 +285,13 @@ class flickr8k (Dataset):
     json.dump(dx, open('files/{}_text.json'.format(name),  'w', encoding='utf-8'), indent=indent, ensure_ascii=False)
 
 class nia (Dataset):
-  def __init__(self, cfg, verbose = True, force = True, indent = 2):
+  def __init__(self, cfg, size='full', verbose = True, force = True, indent = 2):
     super().__init__ (cfg, verbose)
+    cfg_dataset_size (size)
 
     name    = cfg.DATA.NAME
-    root    = cfg.DATA.ROOT_DIR
-    data    = join(root, cfg.DATA.DATA_DIR)
+    root    = cfg.DATA.ROOT
+    data    = join(root, cfg.DATA.DATA)
     jsons   = join(root, cfg.DATA.JSON_DIR)
     images  = join(root, cfg.DATA.IMAGE_DIR)
     caption = join(data, cfg.DATA.CAP_FILE)
@@ -334,12 +336,13 @@ class nia (Dataset):
 
 class coco (Dataset):
 
-  def __init__(self, cfg, verbose = True, force = True, indent = None):
+  def __init__(self, cfg, size='full', verbose = True, force = True, indent = None):
     super().__init__ (cfg, verbose)
+    cfg_dataset_size (size)
 
     name    = cfg.DATA.NAME
-    root    = cfg.DATA.ROOT_DIR
-    data    = join(root, cfg.DATA.DATA_DIR)
+    root    = cfg.DATA.ROOT
+    data    = join(root, cfg.DATA.DATA)
     caption = join(data, cfg.DATA.CAP_FILE)
     trains  = join(data, cfg.DATA.TRAIN_FILE)
     valids  = join(data, cfg.DATA.VALID_FILE)
