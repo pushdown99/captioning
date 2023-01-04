@@ -6,9 +6,10 @@ cfg = edict()
 
 cfg.DATA = edict()
 cfg.DATA.NAME       = 'coco'
-cfg.DATA.ROOT_DIR   = 'data/COCO'
-cfg.DATA.DATA_DIR   = 'annotations'
+cfg.DATA.ROOT       = 'data/COCO'
+cfg.DATA.DATA       = 'annotations'
 cfg.DATA.DATA_SIZE  = 'full' # small | fat | full
+cfg.DATA.MODEL_DIR  = 'model'
 cfg.DATA.PREFIX     = '2014'
 cfg.DATA.CAPTIONS   = 5
 
@@ -18,13 +19,13 @@ def cfg_dataset_size (size):
   cfg.DATA.VALID_FILE = 'valid'   + cfg.DATA.PREFIX + '_' + size + '.txt'
   cfg.DATA.TEST_FILE  = 'test'    + cfg.DATA.PREFIX + '_' + size + '.txt'
 
-  cfg.DATA.IMAGE_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'images'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'description_' + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'train_'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'valid_'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'test_'        + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'text_'        + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT_DIR, cfg.DATA.DATA_DIR, 'tokenize_'    + cfg.DATA.PREFIX + '_' + size + '.pkl')
+  cfg.DATA.IMAGE_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'images'       + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'description_' + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'train_'       + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'valid_'       + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'test_'        + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'text_'        + cfg.DATA.PREFIX + '_' + size + '.json')
+  cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'tokenize_'    + cfg.DATA.PREFIX + '_' + size + '.pkl')
 
 cfg_dataset_size (cfg.DATA.DATA_SIZE)
 

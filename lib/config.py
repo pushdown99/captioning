@@ -1,34 +1,40 @@
 import os
+import json
+import codecs
 from os.path import join
 from easydict import EasyDict as edict
 
 cfg = edict()
 
 cfg.DATA = edict()
-cfg.DATA.NAME       = 'coco'
-cfg.DATA.ROOT       = 'data/COCO'
+
+cfg.DATA.NAME       = 'nia'
+cfg.DATA.ROOT       = 'data/NIA'
 cfg.DATA.DATA       = 'annotations'
 cfg.DATA.DATA_SIZE  = 'full' # small | fat | full
-cfg.DARA_MODEL_DIR  = 'model'
-cfg.DATA.PREFIX     = '2014'
-cfg.DATA.CAPTIONS   = 5
+cfg.DATA.JSON_DIR   = 'annotations/4-3'
+cfg.DATA.IMAGE_DIR  = 'images'
+cfg.DATA.DATA_DIR   = 'data'
+cfg.DATA.MODEL_DIR  = 'model'
+cfg.DATA.TEMP_DIR   = 'temp'
+cfg.OBJECTS_JSON    = join(cfg.DATA.DATA_DIR, 'objects.json')
+cfg.DATA.OBJECTS    = json.load(codecs.open(cfg.OBJECTS_JSON, 'r', 'utf-8-sig'))
 
 def cfg_dataset_size (size):
-  cfg.DATA.CAP_FILE   = 'caption' + cfg.DATA.PREFIX + '_' + size + '.txt'
-  cfg.DATA.TRAIN_FILE = 'train'   + cfg.DATA.PREFIX + '_' + size + '.txt'
-  cfg.DATA.VALID_FILE = 'valid'   + cfg.DATA.PREFIX + '_' + size + '.txt'
-  cfg.DATA.TEST_FILE  = 'test'    + cfg.DATA.PREFIX + '_' + size + '.txt'
+  cfg.DATA.CAP_FILE   = 'caption_'     + size + '.txt'
+  cfg.DATA.TRAIN_FILE = 'train_'       + size + '.txt'
+  cfg.DATA.VALID_FILE = 'valid_'       + size + '.txt'
+  cfg.DATA.TEST_FILE  = 'test_'        + size + '.txt'
+  cfg.DATA.CAPTIONS   = 10
 
-  cfg.DATA.IMAGE_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'images'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'description_' + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'train_'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'valid_'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'test_'        + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'text_'        + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'tokenize_'    + cfg.DATA.PREFIX + '_' + size + '.pkl')
+  cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'description_' + size + '.json')
+  cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'train_'       + size + '.json')
+  cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'valid_'       + size + '.json')
+  cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'test_'        + size + '.json')
+  cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'text_'        + size + '.json')
+  cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'tokenize_'    + size + '.pkl')
 
 cfg_dataset_size (cfg.DATA.DATA_SIZE)
-
 
 cfg.MODEL = edict()
 cfg.MODEL.NAME           = 'efficientnetb0'
