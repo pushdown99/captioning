@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import re
+import sys
 import json
 import codecs
 import pandas as pd
@@ -31,6 +32,7 @@ import climage
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.utils import plot_model, load_img, img_to_array
+from lib.config import opt
 
 def is_notebook() -> bool:
   try:
@@ -298,17 +300,14 @@ def custom_standardization(input_string):
     return tf.strings.regex_replace(lowercase, '[%s]' % re.escape(strips), '')
 
 class TRANSFORMER:
-  def __init__ (self, cfg, verbose=True):
-    self.cfg      = cfg
+  def __init__ (self, verbose=True):
     self.verbose  = verbose
     #self.strategy = tf.distribute.MirroredStrategy()
     self.strategy = tf.distribute.MultiWorkerMirroredStrategy()
     print('Number of devices: {}'.format(self.strategy.num_replicas_in_sync))
 
   def tokenize (self, data, max_vocab_size, seq_length):
-    cfg = self.cfg
-
-    if not isfile(cfg.DATA.TOKENIZE):
+    if not isfile(opt.tokenize):
       text_dataset = tf.data.Dataset.from_tensor_slices(data)
       self.TOKENIZER = tf.keras.layers.TextVectorization (
         max_tokens             = max_vocab_size,
@@ -323,9 +322,9 @@ class TRANSFORMER:
       end   = timer()
       elapsed = (end-start)
       print('Elapsed time: ', str(datetime.timedelta(elapsed)))
-      dump({'config': self.TOKENIZER.get_config(), 'weights': self.TOKENIZER.get_weights()} , open(cfg.DATA.TOKENIZE, "wb"))
+      dump({'config': self.TOKENIZER.get_config(), 'weights': self.TOKENIZER.get_weights()} , open(opt.tokenize, "wb"))
     else:
-      token = load(open(cfg.DATA.TOKENIZE, 'rb'))
+      token = load(open(opt.tokenize, 'rb'))
       self.TOKENIZER = tf.keras.layers.TextVectorization (
         max_tokens             = token['config']['max_tokens'],
         output_mode            = 'int',
@@ -390,8 +389,7 @@ class TRANSFORMER:
       'EPOCHS':         self.EPOCHS,
       'VOCAB_SIZE':     self.VOCAB_SIZE,
     }
-    cfg = self.cfg
-    path = '{}/{}_{}_e{}_{}_v{}_{}_{}_{}/'.format(cfg.DATA.MODEL_DIR, dt.now().strftime('%Y%m%d'), self.dataname, self.EPOCHS, self.stopped_epoch, self.VOCAB_SIZE, len_of_train, len_of_valid, len_of_test)
+    path = '{}/{}_{}_v{}_{}_{}_{}/'.format('model', dt.now().strftime('%Y%m%d'), self.dataname, self.VOCAB_SIZE, len_of_train, history.history['acc'][0], history.history['val_acc'][0])
     os.makedirs(path, exist_ok=True)
 
     History (history, path + 'history.png')
@@ -494,9 +492,8 @@ class TRANSFORMER:
     print ('[+] loading weight     :', join(path, 'model_weight.h5'))
     model.load_weights(join(path, 'model_weight.h5'))
 
-    cfg = self.cfg
-    print ('[+] loading test data  :', cfg.DATA.TEST_JSON)
-    tests = json.load(codecs.open(cfg.DATA.TRAIN_JSON,  'r', 'utf-8-sig'))
+    print ('[+] loading test data  :', opt.test)
+    tests = json.load(codecs.open(opt.test,  'r', 'utf-8-sig'))
 
     self.bleuc = 0
     self.bleu1 = 0.0
@@ -521,12 +518,11 @@ class TRANSFORMER:
     self.EPOCHS = num_of_epochs
 
     # Load dataset
-    cfg = self.cfg
-    descriptions =  json.load(codecs.open(cfg.DATA.DESC_JSON,  'r', 'utf-8-sig'))
-    trains       =  json.load(codecs.open(cfg.DATA.TRAIN_JSON, 'r', 'utf-8-sig'))
-    valids       =  json.load(codecs.open(cfg.DATA.VALID_JSON, 'r', 'utf-8-sig'))
-    tests        =  json.load(codecs.open(cfg.DATA.TEST_JSON,  'r', 'utf-8-sig'))
-    texts        =  json.load(codecs.open(cfg.DATA.TEXT_JSON,  'r', 'utf-8-sig'))
+    descriptions =  json.load(codecs.open(opt.captions, 'r', 'utf-8-sig'))
+    trains       =  json.load(codecs.open(opt.train,    'r', 'utf-8-sig'))
+    valids       =  json.load(codecs.open(opt.val,      'r', 'utf-8-sig'))
+    tests        =  json.load(codecs.open(opt.test,     'r', 'utf-8-sig'))
+    texts        =  json.load(codecs.open(opt.text,     'r', 'utf-8-sig'))
 
     self.image_transfer = tf.keras.Sequential([
       tf.keras.layers.experimental.preprocessing.RandomContrast(factor=(0.05, 0.15)),
@@ -538,8 +534,8 @@ class TRANSFORMER:
     self.tokenize (texts, self.MAX_VOCAB_SIZE, self.SEQ_LENGTH)
 
     for k in trains:
-      if len(trains[k]) != self.cfg.DATA.CAPTIONS:
-        print ('caption data error', self.cfg.DATA.CAPTIONS, k, trains[k])
+      if len(trains[k]) != opt.n_caption:
+        print ('caption data error', opt.n_caption, k, trains[k])
 
 
     ds_train = self.make_dataset('train', list(trains.keys()), list(trains.values()), False, self.TOKENIZER, self.BATCH_SIZE, self.SHUFFLE_DIM)
@@ -629,18 +625,18 @@ class efficientnetb0 (TRANSFORMER):
   def __del__ (self):
     print('[-] efficientnetb0 deleted.')
 
-  def __init__ (self, cfg, verbose=True):
-    super().__init__(cfg, verbose)
+  def __init__ (self, verbose=True):
+    super().__init__(verbose)
 
-    self.dataname       = cfg.DATA.NAME
-    self.IMAGE_SHAPE    = cfg.MODEL.IMAGE_SHAPE
-    self.MAX_VOCAB_SIZE = cfg.MODEL.MAX_VOCAB_SIZE
-    self.SEQ_LENGTH     = cfg.MODEL.SEQ_LENGTH
-    self.BATCH_SIZE     = cfg.MODEL.BATCH_SIZE
-    self.SHUFFLE_DIM    = cfg.MODEL.SHUFFLE_DIM
-    self.EMBED_DIM      = cfg.MODEL.EMBED_DIM
-    self.FF_DIM         = cfg.MODEL.FF_DIM
-    self.NUM_HEADS      = cfg.MODEL.NUM_HEADS
+    self.dataname       = opt.data
+    self.IMAGE_SHAPE    = opt.IMAGE_SHAPE
+    self.MAX_VOCAB_SIZE = opt.MAX_VOCAB_SIZE
+    self.SEQ_LENGTH     = opt.SEQ_LENGTH
+    self.BATCH_SIZE     = opt.BATCH_SIZE
+    self.SHUFFLE_DIM    = opt.SHUFFLE_DIM
+    self.EMBED_DIM      = opt.EMBED_DIM
+    self.FF_DIM         = opt.FF_DIM
+    self.NUM_HEADS      = opt.NUM_HEADS
 
     #with self.strategy.scope():
     model = EfficientNetB0(input_shape=(*self.IMAGE_SHAPE, 3), include_top=False, weights='imagenet',)
