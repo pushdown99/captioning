@@ -21,7 +21,7 @@ def train(**kwargs):
   opt._parse(kwargs)
 
   model = transformer.efficientnetb0() 
-  model.fit(40)
+  model.fit(80)
 
 if __name__ == '__main__':
     import fire

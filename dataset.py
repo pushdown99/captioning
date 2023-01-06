@@ -23,7 +23,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class cfg:
   data       = 'nia'
-  root_dir   = 'dataset/NIA'
+  root_dir   = 'dataset/NIA1'
   data_dir   = join(root_dir, 'annotations')
   image_dir  = join(root_dir, 'images')
   objects    = join(root_dir, 'objects.json')
@@ -33,8 +33,8 @@ class cfg:
 
   lang = 'ko' # ko en
   min_per_class = 50
-  num_per_class = 300
-  limits = 10000
+  num_per_class = 1000
+  limits = 100000
   split  = [0.8, 0.1]
 
   trainvaltest    = list ()
@@ -152,6 +152,19 @@ def update ():
   opt._pred_dicts = join(opt.root_dir, 'predicates.dict.json')
   opt._obj_dicts  = join(opt.root_dir, 'objects.dict.json')
 
+def clean_descriptions (descriptions):
+  table = str.maketrans('', '', string.punctuation)
+  for key, desc_list in descriptions.items():
+    for i in range(len(desc_list)):
+      desc = desc_list[i]
+      desc = desc.split()
+      desc = [word.lower() for word in desc]
+      desc = [w.translate(table) for w in desc]
+      desc = [word for word in desc if len(word)>1]
+      desc = [word for word in desc if word.isalpha()]
+      desc_list[i] =  ' '.join(desc)
+  return descriptions
+
 def get_images (dir_):
   return {basename(p).split('.')[0].split('_')[0]+'_'+basename(p).split('.')[0].split('_')[1]:p for p in tqdm(glob(join(dir_, '**/*.jpg'), recursive=True), desc='images   ')}
 
@@ -180,6 +193,10 @@ def put_text (d, f):
   fp.close()
 
 #########################################################################################
+
+forbidden = [
+  '이 사진의 주제는'
+]
 
 def get_nia_instances ():
   opt.images = get_images (opt.image_dir)
@@ -264,6 +281,10 @@ def get_nia_instances ():
       opt.instances[k]['bbox'].append(an)
 
     for d in d43['annotations'][0]['text']:
+      d['korean'] = d['korean'].replace('. .','.')
+      d['korean'] = d['korean'].replace('.','')
+      d['english'] = d['english'].replace('. .','.')
+      d['english'] = d['english'].replace('.','')
       opt.instances[k]['ko'].append(d['korean'])
       opt.instances[k]['en'].append(d['english'])
 
@@ -281,9 +302,11 @@ def get_nia_instances ():
     opt.cls_files[cls].append(name)
 
     if opt.lang == 'ko':
-      opt.captions[k] = list(map(str.lower, opt.instances[k]['ko']))
+      #opt.captions[k] = list(map(str.lower, opt.instances[k]['ko']))
+      opt.captions[k] = clean_descriptions (opt.instances[k]['ko'])
     else:
-      opt.captions[k] = list(map(str.lower, opt.instances[k]['en']))
+      #opt.captions[k] = list(map(str.lower, opt.instances[k]['en']))
+      opt.captions[k] = clean_descriptions (opt.instances[k]['en'])
 
     for d in d44['annotations'][0]['matrix']:
       src  = '<empty>' if type(d['source']) != str     or len(d['source']) <= 0     else d['source'].lower().strip()
@@ -325,6 +348,7 @@ def get_coco_instances ():
     cap = cap.replace('\n','')
     opt.captions[k].append(cap)
 
+  opt.captions = clean_descriptions (opt.captions)
   #print (len(opt.captions))
   #key = list(opt.captions.keys())[0]
   #print (key, opt.captions[key])

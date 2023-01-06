@@ -20,6 +20,7 @@ from keras.optimizers import Adam
 from keras.losses import SparseCategoricalCrossentropy
 from nltk.translate.bleu_score import corpus_bleu, sentence_bleu, SmoothingFunction
 from tqdm.keras import TqdmCallback
+from tqdm import tqdm
 from datetime import datetime as dt
 from timeit import default_timer as timer
 
@@ -302,6 +303,7 @@ def custom_standardization(input_string):
 class TRANSFORMER:
   def __init__ (self, verbose=True):
     self.verbose  = verbose
+    self.scores   = list()
     #self.strategy = tf.distribute.MirroredStrategy()
     self.strategy = tf.distribute.MultiWorkerMirroredStrategy()
     print('Number of devices: {}'.format(self.strategy.num_replicas_in_sync))
@@ -474,7 +476,7 @@ class TRANSFORMER:
     print('Prediction: %s' %(caption))
     return caption
 
-  def evaluate (self, path):
+  def evaluate (self, path, display = False):
     print ('[+] loading config     :', path + 'config.json')
     with open(join(path,'config.json')) as f:
         config = json.load(f)
@@ -501,18 +503,26 @@ class TRANSFORMER:
     self.bleu3 = 0.0
     self.bleu4 = 0.0
 
-    for k in tests:
+    for k in tqdm(tests):
       actual, predicted = list(), list()
       cap = self.generate_caption(k, model, tokenizer, SEQ_LENGTH)
       inf = [d.split() for d in tests[k]]
 
-      Display (k)
-      print (k, cap, tests[k])
+      if display:
+        Display (k)
+        print (k, cap, tests[k])
 
       predicted.append (cap.split())
       actual.append (inf)
 
-      self.calculate_scores(actual, predicted)
+      self.calculate_scores(k, actual, predicted)
+
+    print ('BLEU-1: {:.2f} %'.format(self.bleu1/self.bleuc))
+    print ('BLEU-2: {:.2f} %'.format(self.bleu2/self.bleuc))
+    print ('BLEU-3: {:.2f} %'.format(self.bleu3/self.bleuc))
+    print ('BLEU-4: {:.2f} %'.format(self.bleu4/self.bleuc))
+
+    json.dump(self.scores, open('scores.json', 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 
   def fit (self, num_of_epochs = 5):
     self.EPOCHS = num_of_epochs
@@ -576,17 +586,18 @@ class TRANSFORMER:
     self.save (model, history, len(trains), len(valids), len(tests), 2)
 
   # calculate BLEU score
-  def calculate_scores (self, actual, predicted):
+  def calculate_scores (self, path, actual, predicted, display = False):
     smooth = SmoothingFunction().method4
     bleu1 = corpus_bleu(actual, predicted, weights=(1.0, 0, 0, 0),           smoothing_function=smooth)*100
     bleu2 = corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0),         smoothing_function=smooth)*100
     bleu3 = corpus_bleu(actual, predicted, weights=(0.3, 0.3, 0.3, 0),       smoothing_function=smooth)*100
     bleu4 = corpus_bleu(actual, predicted, weights=(0.25, 0.25, 0.25, 0.25), smoothing_function=smooth)*100
 
-    print('BLEU-1: %f' % bleu1)
-    print('BLEU-2: %f' % bleu2)
-    print('BLEU-3: %f' % bleu3)
-    print('BLEU-4: %f' % bleu4)
+    if display:
+      print('BLEU-1: %f' % bleu1)
+      print('BLEU-2: %f' % bleu2)
+      print('BLEU-3: %f' % bleu3)
+      print('BLEU-4: %f' % bleu4)
 
     self.bleuc += 1
     self.bleu1 += bleu1
@@ -594,19 +605,25 @@ class TRANSFORMER:
     self.bleu3 += bleu3
     self.bleu4 += bleu4
 
-  # evaluate the skill of the model
-  def evaluate_model (self, model, descriptions, features, tokenizer, max_length):
-    actual, predicted = list(), list()
-    # step over the whole set
-    for key, desc_list in tqdm(descriptions.items(), position=0, leave=True):
-      # generate description
-      yhat = self.generate_desc(model, tokenizer, features[key], max_length)
-      # store actual and predicted
-      references = [d.split() for d in desc_list]
-      actual.append(references)
-      predicted.append(yhat.split())
-    print('Sampling:')
-    self.calculate_scores(actual, predicted)
+    score = dict()
+    score['path']  = path
+    score['bleu1'] = bleu1
+    self.scores.append (score)
+
+
+#  # evaluate the skill of the model
+#  def evaluate_model (self, model, descriptions, features, tokenizer, max_length):
+#    actual, predicted = list(), list()
+#    # step over the whole set
+#    for key, desc_list in tqdm(descriptions.items(), position=0, leave=True):
+#      # generate description
+#      yhat = self.generate_desc(model, tokenizer, features[key], max_length)
+#      # store actual and predicted
+#      references = [d.split() for d in desc_list]
+#      actual.append(references)
+#      predicted.append(yhat.split())
+#    print('Sampling:')
+#    self.calculate_scores(path, actual, predicted)
 
 #  def evaluate (self, filename, max_length):
 #    test = load(open('data/{}_test.pkl'.format(self.dataname), 'rb'))
