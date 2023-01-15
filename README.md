@@ -99,12 +99,12 @@ you have to make sure that the training set images are in the folder COCO_datase
 you have to enter all the parameters necessary for the training in the settings.py file.
 start the model training with python3 training.py
 
-~~~console
-cp lib/config.nia lib/config.py
-python run.py train --data=nia
+```console
+foo@bar cp lib/config.nia lib/config.py
+foo@bar python run.py train --data=nia
+```
 
-or 
-
+```console
 nohup python run.py train --data=nia > train.nia.out &
 tail -f train.nia.out
-~~~
+```
