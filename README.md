@@ -1,19 +1,21 @@
 # image captioning
 
-keras/Tensorflow Image Captioning application using CNN and Transformer as encoder/decoder.
+keras/tensorflow image captioning application using CNN and transformer as encoder/decoder.
 In particulary, the architecture consists of three models:
 
-A CNN: used to extract the image features. In this application, it used EfficientNetB0 pre-trained on imagenet.
-A TransformerEncoder: the extracted image features are then passed to a Transformer encoder that generates a new representation of the inputs.
-A TransformerDecoder: it takes the encoder output and the text data sequence as inputs and tries to learn to generate the caption.
+model|description
+---|---
+CNN|used to extract the image features. In this application, it used EfficientNetB0 pre-trained on imagenet.
+TransformerEncoder|the extracted image features are then passed to a transformer encoder that generates a new representation of the inputs.
+TransformerDecoder|it takes the encoder output and the text data sequence as inputs and tries to learn to generate the caption.
 
-(reference code: https://github.com/Dantekk/Image-Captioning
+(reference github) https://github.com/Dantekk/image-captioning
 
 ## Progress
-- [x] Guide for Project Setup
-- [x] Guide for Model Evaluation with pretrained model
-- [x] Guide for Model Training
-- [x] Uploading pretrained model and format-compatible datasets.
+- [x] guide for project setup
+- [x] guide for model evaluation with pretrained model
+- [x] guide for model training
+- [x] uploading pretrained model and format-compatible datasets.
 
 ## Dataset
 The model has been trained on train/val NIA dataset. You can download the dataset here. Note that test images are not required for this code to work.
@@ -33,11 +35,10 @@ In same way in the c_val.json :
 ##Dependencies
 I have used the following versions for code work:
 
-python==3.8.8
-tensorflow==2.4.1
-tensorflow-gpu==2.4.1
-numpy==1.19.1
-h5py==2.10.0
+python: 3.9.10
+tensorflow: 2.9.3
+cuda: 11.2
+cudnn: 8
 
 #setting
 For my training session, I have get best results with this `lib/config.py` file :
@@ -95,9 +96,9 @@ opt = Config()
 ##Training
 To train the model you need to follow the following steps :
 
-you have to make sure that the training set images are in the folder COCO_dataset/train2014/ and that validation set images are in COCO_dataset/val2014/.
-you have to enter all the parameters necessary for the training in the settings.py file.
-start the model training with python3 training.py
+you have to make sure that the training and valid set images are in the folder NIA_dataset/images/ 
+you have to enter all the parameters necessary for the training in the config.py file.
+start the model training with python run.py train
 
 ```powershell
 foo@bar cp lib/config.nia lib/config.py

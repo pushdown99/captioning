@@ -2,6 +2,7 @@ from IPython.display import Image, display
 
 import numpy as np
 import matplotlib.pyplot as plt
+import climage
 from keras.utils import plot_model, load_img, img_to_array
 
 def is_notebook() -> bool:
@@ -20,7 +21,7 @@ def Display (file):
   if is_notebook():
     display(Image(file))
   else:
-    out = climage.convert(file)
+    out = climage.convert(file, is_unicode=True)
     print (out)
 
 def load_image(image_path):

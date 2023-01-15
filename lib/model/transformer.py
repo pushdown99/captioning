@@ -523,7 +523,7 @@ class TRANSFORMER:
     print ('BLEU-3: {:.2f} %'.format(self.bleu3/self.bleuc))
     print ('BLEU-4: {:.2f} %'.format(self.bleu4/self.bleuc))
 
-    json.dump(self.scores, open('scores.json', 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
+    json.dump(self.scores, open(join(opt.data_dir, 'scores.json'), 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 
   def fit (self, num_of_epochs = 5):
     self.EPOCHS = num_of_epochs

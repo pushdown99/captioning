@@ -374,6 +374,8 @@ def get_nia_instances ():
   opt.data43 = get_jsons (opt.json43, '4-3 jsons')
   opt.data44 = get_jsons (opt.json44, '4-4 jsons')
 
+  opt.obj_dicts = {k:0 for k in opt.object_id.keys()}
+
   anno       = dict ()
   trans2     = dict ()
 
@@ -445,12 +447,12 @@ def get_nia_instances ():
         opt.pred_dicts [pred] = 0
       opt.pred_dicts [pred] += 1
 
-      if not sub in opt.obj_dicts:
-        opt.obj_dicts [sub] = 0
+      #if not sub in opt.obj_dicts:
+      #  opt.obj_dicts [sub] = 0
       opt.obj_dicts [sub] += 1
 
-      if not obj in opt.obj_dicts:
-        opt.obj_dicts [obj] = 0
+      #if not obj in opt.obj_dicts:
+      #  opt.obj_dicts [obj] = 0
       opt.obj_dicts [obj] += 1
 
     for u in _ul:
@@ -837,7 +839,7 @@ def prepare_vg_dataset ():
 WEIGHT = 100.0
 
 def invert_weight (dicts):
-  weights = [1.0 / w for w in list(dicts.values())]
+  weights = [1.0 / 1 if w == 0 else w for w in list(dicts.values())]
   weights = [w / sum(weights) * WEIGHT for w in weights]
 
   return { k: weights[i] for i, k in enumerate (dicts)}
@@ -1095,6 +1097,12 @@ def build_dataset ():
     val          = list ()
     test         = list ()
 
+    trainvaltest = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.trainvaltest])
+    trainval = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.trainval])
+    train = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.train])
+    val = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.val])
+    test = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.test])
+    
 #  #  #anno = build_categories ()
 #
 #    for v in opt.trainvaltest:
@@ -1212,39 +1220,11 @@ def callback (op, data):
     d[2]()
 
 if __name__ == '__main__':
-
-  #weights = [1,2,3,4,5,6,7,8,8,1]
-  #weights = [1.0 / w for w in weights]           # Invert all weights
-  #sum_weight = sum(weights)
-  #weights = [(w / sum(weights)) * 100 for w in weights]   
-  #print (weights)
-  #print (sum(weights))
-
-  #data = json.load(codecs.open('dataset/GENOME/top_150_50/inverse_weight.json', 'r', 'utf-8-sig'))
-  #_sum = 0.0
-  #_max = 0.0
-  #_min = 1000.0
-  #for k,v in data['predicate'].items():
-  #  _sum += v
-  #  _max = max(_max, v)
-  #  _min = min(_min, v)
-  #print (len(data['predicate']), _sum, _max, _min)
-#
-#  _sum = 0.0
-#  _max = 0.0
-#  _min = 1000.0
-#  for k,v in data['object'].items():
-#    _sum += v
-#    _max = max(_max, v)
-#    _min = min(_min, v)
-#  print (len(data['object']), _sum, _max, _min)
-
-  #sentence = sentence_refine ('검은색 전자렌지 가 주방 안 흰색 대리석 상판 위 에 있다', 'pre', 'ko')
-  #print ('result:', sentence)
-  #sys.exit()
   _t = time.process_time()
+
   import fire
   fire.Fire()
+
   _elapsed = time.process_time() - _t
 
   print ('')
