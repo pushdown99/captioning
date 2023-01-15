@@ -432,7 +432,7 @@ class TRANSFORMER:
 
     return model
 
-  def generate_caption(self, images, caption_model, tokenizer, SEQ_LENGTH=25):
+  def generate_caption (self, images, caption_model, tokenizer, SEQ_LENGTH=25):
     vocab = tokenizer.get_vocabulary()
     index_lookup = dict(zip(range(len(vocab)), vocab))
     max_decoded_sentence_length = SEQ_LENGTH - 1
@@ -452,10 +452,11 @@ class TRANSFORMER:
       sampled_token = index_lookup[sampled_token_index]
       if sampled_token == 'eos':
         break
-      decoded_caption += ' ' + sampled_token
+      if sampled_token != '[UNK]':
+        decoded_caption += ' ' + sampled_token
 
     return decoded_caption.replace('sos ', '')
-    return caption_model
+    #return caption_model
 
 
   def inference (self, image, path):
@@ -472,7 +473,7 @@ class TRANSFORMER:
     print (path + 'model_weight.h5')
     model.load_weights(path + 'model_weight.h5')
 
-    caption = self.generate_caption(image, model, tokenizer, SEQ_LENGTH)
+    caption = self.generate_caption (image, model, tokenizer, SEQ_LENGTH)
     print('Prediction: %s' %(caption))
     return caption
 
@@ -505,7 +506,7 @@ class TRANSFORMER:
 
     for k in tqdm(tests):
       actual, predicted = list(), list()
-      cap = self.generate_caption(k, model, tokenizer, SEQ_LENGTH)
+      cap = self.generate_caption (k, model, tokenizer, SEQ_LENGTH)
       inf = [d.split() for d in tests[k]]
 
       if display:
@@ -587,6 +588,8 @@ class TRANSFORMER:
 
   # calculate BLEU score
   def calculate_scores (self, path, actual, predicted, display = False):
+    if ' '.join(predicted[0]) == '': return
+
     smooth = SmoothingFunction().method4
     bleu1 = corpus_bleu(actual, predicted, weights=(1.0, 0, 0, 0),           smoothing_function=smooth)*100
     bleu2 = corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0),         smoothing_function=smooth)*100
@@ -608,6 +611,8 @@ class TRANSFORMER:
     score = dict()
     score['path']  = path
     score['bleu1'] = bleu1
+    score['predicted']  = ' '.join(predicted[0])
+    score['actual']  = list([' '.join(d) for d in actual[0]])
     self.scores.append (score)
 
 

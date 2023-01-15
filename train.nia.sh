@@ -1,4 +1,4 @@
 #!/bin/bash
 cp lib/config.nia lib/config.py
-CUDA_VISIBLE_DEVICES=1 nohup python run.py train -n nia -e 40 -v full > train.nia.out &
+CUDA_VISIBLE_DEVICES=0,1,2 nohup python run.py train --data=nia > train.nia.out &
 

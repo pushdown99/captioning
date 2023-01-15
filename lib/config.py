@@ -20,6 +20,7 @@ class Config:
     test     = join(data_dir, 'c_test.json')
     text     = join(data_dir, 'c_text.json')
     tokenize = join(data_dir, 'tokenize.pkl')
+    trained = ''
 
     model = 'efficientnetb0'
     epoch = 20

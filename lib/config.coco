@@ -1,43 +1,55 @@
-import os
+import tensorflow as tf
+from pprint import pprint
 from os.path import join
-from easydict import EasyDict as edict
-
-cfg = edict()
-
-cfg.DATA = edict()
-cfg.DATA.NAME       = 'coco'
-cfg.DATA.ROOT       = 'data/COCO'
-cfg.DATA.DATA       = 'annotations'
-cfg.DATA.DATA_SIZE  = 'full' # small | fat | full
-cfg.DATA.MODEL_DIR  = 'model'
-cfg.DATA.PREFIX     = '2014'
-cfg.DATA.CAPTIONS   = 5
-
-def cfg_dataset_size (size):
-  cfg.DATA.CAP_FILE   = 'caption' + cfg.DATA.PREFIX + '_' + size + '.txt'
-  cfg.DATA.TRAIN_FILE = 'train'   + cfg.DATA.PREFIX + '_' + size + '.txt'
-  cfg.DATA.VALID_FILE = 'valid'   + cfg.DATA.PREFIX + '_' + size + '.txt'
-  cfg.DATA.TEST_FILE  = 'test'    + cfg.DATA.PREFIX + '_' + size + '.txt'
-
-  cfg.DATA.IMAGE_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'images'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'description_' + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'train_'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'valid_'       + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'test_'        + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'text_'        + cfg.DATA.PREFIX + '_' + size + '.json')
-  cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'tokenize_'    + cfg.DATA.PREFIX + '_' + size + '.pkl')
-
-cfg_dataset_size (cfg.DATA.DATA_SIZE)
 
 
-cfg.MODEL = edict()
-cfg.MODEL.NAME           = 'efficientnetb0'
-cfg.MODEL.IMAGE_SHAPE    = (299,299)
-cfg.MODEL.MAX_VOCAB_SIZE = 2000000
-cfg.MODEL.SEQ_LENGTH     = 25
-cfg.MODEL.BATCH_SIZE     = 64
-cfg.MODEL.SHUFFLE_DIM    = 512
-cfg.MODEL.EMBED_DIM      = 512
-cfg.MODEL.FF_DIM         = 1024
-cfg.MODEL.NUM_HEADS      = 6
+# Default Configs for training
+# NOTE that, config items could be overwriten by passing argument through command line.
+# e.g. --data-dir='./data/'
 
+num_gpus    = len(tf.config.list_physical_devices('GPU'))
+num_workers = num_gpus * 4
+
+class Config:
+    data = 'coco'
+    data_dir = 'dataset/COCO/'
+    captions = join(data_dir, 'captions.json')
+    trainval = join(data_dir, 'c_trainval.json')
+    train    = join(data_dir, 'c_train.json')
+    val      = join(data_dir, 'c_val.json')
+    test     = join(data_dir, 'c_test.json')
+    text     = join(data_dir, 'c_text.json')
+    tokenize = join(data_dir, 'tokenize.pkl')
+
+    model = 'efficientnetb0'
+    epoch = 20
+    n_caption = 5 #
+
+    num_workers      = num_workers
+    test_num_workers = num_workers
+
+    IMAGE_SHAPE    = (299,299)
+    MAX_VOCAB_SIZE = 2000000
+    SEQ_LENGTH     = 25
+    BATCH_SIZE     = 64
+    SHUFFLE_DIM    = 512
+    EMBED_DIM      = 512
+    FF_DIM         = 1024
+    NUM_HEADS      = 6
+
+    def _parse(self, kwargs):
+        state_dict = self._state_dict()
+        for k, v in kwargs.items():
+            if k not in state_dict:
+                raise ValueError('UnKnown Option: "--%s"' % k)
+            setattr(self, k, v)
+
+        print('======user config========')
+        pprint(self._state_dict())
+        print('==========end============')
+
+    def _state_dict(self):
+        return {k: getattr(self, k) for k, _ in Config.__dict__.items() \
+                if not k.startswith('_')}
+
+opt = Config()

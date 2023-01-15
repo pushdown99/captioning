@@ -1,49 +1,56 @@
-import os
-import json
-import codecs
+import tensorflow as tf
+from pprint import pprint
 from os.path import join
-from easydict import EasyDict as edict
 
-cfg = edict()
 
-cfg.DATA = edict()
+# Default Configs for training
+# NOTE that, config items could be overwriten by passing argument through command line.
+# e.g. --data-dir='./data/'
 
-cfg.DATA.NAME       = 'nia'
-cfg.DATA.ROOT       = 'data/NIA'
-cfg.DATA.DATA       = 'annotations'
-cfg.DATA.DATA_SIZE  = 'full' # small | fat | full
-cfg.DATA.JSON_DIR   = 'annotations/4-3'
-cfg.DATA.IMAGE_DIR  = 'images'
-cfg.DATA.DATA_DIR   = 'data'
-cfg.DATA.MODEL_DIR  = 'model'
-cfg.DATA.TEMP_DIR   = 'temp'
-cfg.OBJECTS_JSON    = join(cfg.DATA.DATA_DIR, 'objects.json')
-cfg.DATA.OBJECTS    = json.load(codecs.open(cfg.OBJECTS_JSON, 'r', 'utf-8-sig'))
+num_gpus    = len(tf.config.list_physical_devices('GPU'))
+num_workers = num_gpus * 4
 
-def cfg_dataset_size (size):
-  cfg.DATA.CAP_FILE   = 'caption_'     + size + '.txt'
-  cfg.DATA.TRAIN_FILE = 'train_'       + size + '.txt'
-  cfg.DATA.VALID_FILE = 'valid_'       + size + '.txt'
-  cfg.DATA.TEST_FILE  = 'test_'        + size + '.txt'
-  cfg.DATA.CAPTIONS   = 10
+class Config:
+    data = 'nia'
+    data_dir = 'dataset/NIA/'
+    captions = join(data_dir, 'captions.json')
+    trainval = join(data_dir, 'c_trainval.json')
+    train    = join(data_dir, 'c_train.json')
+    val      = join(data_dir, 'c_val.json')
+    test     = join(data_dir, 'c_test.json')
+    text     = join(data_dir, 'c_text.json')
+    tokenize = join(data_dir, 'tokenize.pkl')
+    trained = ''
 
-  cfg.DATA.DESC_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'description_' + size + '.json')
-  cfg.DATA.TRAIN_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'train_'       + size + '.json')
-  cfg.DATA.VALID_JSON = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'valid_'       + size + '.json')
-  cfg.DATA.TEST_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'test_'        + size + '.json')
-  cfg.DATA.TEXT_JSON  = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'text_'        + size + '.json')
-  cfg.DATA.TOKENIZE   = join(cfg.DATA.ROOT, cfg.DATA.DATA, 'tokenize_'    + size + '.pkl')
+    model = 'efficientnetb0'
+    epoch = 20
+    n_caption = 10 #
 
-cfg_dataset_size (cfg.DATA.DATA_SIZE)
+    num_workers      = num_workers
+    test_num_workers = num_workers
 
-cfg.MODEL = edict()
-cfg.MODEL.NAME           = 'efficientnetb0'
-cfg.MODEL.IMAGE_SHAPE    = (299,299)
-cfg.MODEL.MAX_VOCAB_SIZE = 2000000
-cfg.MODEL.SEQ_LENGTH     = 25
-cfg.MODEL.BATCH_SIZE     = 64
-cfg.MODEL.SHUFFLE_DIM    = 512
-cfg.MODEL.EMBED_DIM      = 512
-cfg.MODEL.FF_DIM         = 1024
-cfg.MODEL.NUM_HEADS      = 6
+    IMAGE_SHAPE    = (299,299)
+    MAX_VOCAB_SIZE = 2000000
+    SEQ_LENGTH     = 25
+    BATCH_SIZE     = 64
+    SHUFFLE_DIM    = 512
+    EMBED_DIM      = 512
+    FF_DIM         = 1024
+    NUM_HEADS      = 6
 
+    def _parse(self, kwargs):
+        state_dict = self._state_dict()
+        for k, v in kwargs.items():
+            if k not in state_dict:
+                raise ValueError('UnKnown Option: "--%s"' % k)
+            setattr(self, k, v)
+
+        print('======user config========')
+        pprint(self._state_dict())
+        print('==========end============')
+
+    def _state_dict(self):
+        return {k: getattr(self, k) for k, _ in Config.__dict__.items() \
+                if not k.startswith('_')}
+
+opt = Config()

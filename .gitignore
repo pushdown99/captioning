@@ -40,6 +40,8 @@
 *.cubin
 *.fatbin
 
+*.ipynb
+
 tf2/
 bak/
 model/
