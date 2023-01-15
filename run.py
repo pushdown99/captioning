@@ -5,6 +5,7 @@ import ipdb
 import matplotlib
 from tqdm import tqdm
 from lib.model import transformer
+from lib.utils import Display
 from lib.config import opt
 
 import resource
@@ -14,14 +15,26 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (20480, rlimit[1]))
 
 matplotlib.use('agg')
 
-def eval(**kwargs):
+def eval (**kwargs):
   opt._parse(kwargs)
+
   model = transformer.efficientnetb0() 
   _model = opt.trained
   _model = _model + '/' if _model[-1:] != '/' else _model
   model.evaluate(_model)
 
-def train(**kwargs):
+def inference (**kwargs):
+  opt._parse(kwargs)
+
+  model = transformer.efficientnetb0() 
+  _model = opt.trained
+  _model = _model + '/' if _model[-1:] != '/' else _model
+
+  _sample = opt.sample
+  model.inference(_sample, _model)
+  Display (_sample)
+
+def train (**kwargs):
   opt._parse(kwargs)
 
   model = transformer.efficientnetb0() 

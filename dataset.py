@@ -421,6 +421,13 @@ def get_nia_instances ():
       opt.instances[k]['43'] = d43['annotations'][0]['text']
       opt.instances[k]['44'] = d44['annotations'][0]['text']
 
+    if sum ([ 1 if o['korean']=='' else 0 for o in opt.instances[k]['43']]) > 0:
+      del opt.instances[k]
+      continue
+    if sum ([ 1 if o['english']=='' else 0 for o in opt.instances[k]['43']]) > 0:
+      del opt.instances[k]
+      continue
+
     name = basename(opt.images[k]).split('.')[0]
     cls  = name.split('(')[0].split('_')[2]
     ins  = name.split('(')[1].split(')')[0]
@@ -503,7 +510,7 @@ def get_nia_instances ():
       del opt.instances[k]
       continue
 
-    if len(ko43) != opt.n_caption and len(en43) != opt.n_caption and len(ko44) != opt.n_caption and len(en44) != opt.n_caption:
+    if len(ko43) != opt.n_caption or len(en43) != opt.n_caption or len(ko44) != opt.n_caption or len(en44) != opt.n_caption:
       del opt.instances[k]
       continue
 
@@ -1134,11 +1141,12 @@ def build_dataset ():
   print ('trainval    (txt) :', len(opt.trainval))
   print ('test        (txt) :', len(opt.test))
 
-  print ('trainvaltest(json):', len(trainvaltest))
-  print ('train       (json):', len(train))
-  print ('val         (json):', len(val))
-  print ('trainval    (json):', len(trainval))
-  print ('test        (json):', len(test))
+  if opt.data == 'nia':
+    print ('trainvaltest(json):', len(trainvaltest))
+    print ('train       (json):', len(train))
+    print ('val         (json):', len(val))
+    print ('trainval    (json):', len(trainval))
+    print ('test        (json):', len(test))
 
 
 def build_voc_dataset ():
