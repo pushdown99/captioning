@@ -27,10 +27,10 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 # NOTE that, config items could be overwriten by passing argument through command line.
 
 class cfg:
-  data       = 'nia'
-  root_dir   = 'dataset/NIA'
+  dataset    = 'nia'
+  root_dir   = 'dataset/nia'
   data_dir   = join(root_dir, 'annotations')
-  image_dir  = join(root_dir, 'images')
+  image_dir  = join('dataset', 'images')
   objects    = join(root_dir, 'objects.json')
   json42     = join(root_dir, 'download/4-2')
   json43     = join(root_dir, 'download/4-3')
@@ -58,6 +58,12 @@ class cfg:
   __train         = join(root_dir, 'train.json')
   __val           = join(root_dir, 'val.json')
   __test          = join(root_dir, 'test.json')
+  __train_fat     = join(root_dir, 'train_fat.json')
+  __val_fat       = join(root_dir, 'val_fat.json')
+  __test_fat      = join(root_dir, 'test_fat.json')
+  __train_small   = join(root_dir, 'train_small.json')
+  __val_small     = join(root_dir, 'val_small.json')
+  __test_small    = join(root_dir, 'test_small.json')
 
   _c_trainvaltest = join(root_dir, 'c_trainvaltest.json')
   _c_trainval     = join(root_dir, 'c_trainval.json')
@@ -107,8 +113,8 @@ class cfg:
   _categories = join(root_dir, 'categories.json')
   _inv_weight = join(root_dir, 'inverse_weight.json')
   _dicts      = join(root_dir, 'dict.json')
-  _word_dict = join(root_dir, 'word_dict.json')
-  _kor2eng      = join(root_dir, 'kor2eng.json')
+  _word_dict  = join(root_dir, 'word_dict.json')
+  _kor2eng    = join(root_dir, 'kor2eng.json')
   _eng2kor    = join(root_dir, 'eng2kor.json')
   _unalias    = join(root_dir, 'unalias.json')
   _anno       = join(root_dir, 'anno.json')
@@ -160,6 +166,14 @@ def update ():
   opt.__train      = join(opt.root_dir, 'train.json')
   opt.__val        = join(opt.root_dir, 'val.json')
   opt.__test       = join(opt.root_dir, 'test.json')
+
+  opt.__train_fat    = join(opt.root_dir, 'train_fat.json')
+  opt.__val_fat      = join(opt.root_dir, 'val_fat.json')
+  opt.__test_fat     = join(opt.root_dir, 'test_fat.json')
+
+  opt.__train_small  = join(opt.root_dir, 'train_small.json')
+  opt.__val_small    = join(opt.root_dir, 'val_small.json')
+  opt.__test_small   = join(opt.root_dir, 'test_small.json')
 
   opt._c_trainvaltest = join(opt.root_dir, 'c_trainvaltest.json')
   opt._c_trainval     = join(opt.root_dir, 'c_trainval.json')
@@ -885,7 +899,7 @@ def prepare_nia_dataset (**kwargs):
 
 def prepare (**kwargs):
   opt._parse(kwargs)
-  callback ('prepare', opt.data)
+  callback ('prepare', opt.dataset)
 
 #########################################################################################
 
@@ -893,7 +907,7 @@ def build_caption (l, f, to_text=False):
   opt.images    = load_json (opt._images)
   opt.captions  = load_json (opt._captions)
 
-  if opt.data == 'nia':
+  if opt.dataset == 'nia':
     data = {opt.images[basename(k).split('_')[0]+'_'+basename(k).split('_')[1]]:opt.captions[basename(k).split('_')[0]+'_'+basename(k).split('_')[1]][:opt.n_caption] for k in l}
   else:
     data = {opt.images[k]:opt.captions[k][:opt.n_caption] for k in l}
@@ -1082,7 +1096,7 @@ def build_dataset ():
   put_text (opt.val, opt._val)
   put_text (opt.test, opt._test)
 
-  if opt.data == 'nia' or opt.data == 'coco':
+  if opt.dataset == 'nia' or opt.dataset == 'coco':
     build_caption (opt.trainvaltest, opt._c_trainvaltest, True)
     build_caption (opt.trainval, opt._c_trainval)
     build_caption (opt.train, opt._c_train)
@@ -1090,7 +1104,7 @@ def build_dataset ():
     build_caption (opt.test, opt._c_test)
 
 
-  if opt.data == 'nia':
+  if opt.dataset == 'nia':
     trainvaltest = list ()
     trainval     = list ()
     train        = list ()
@@ -1098,10 +1112,20 @@ def build_dataset ():
     test         = list ()
 
     trainvaltest = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.trainvaltest])
-    trainval = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.trainval])
-    train = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.train])
-    val = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.val])
-    test = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.test])
+    trainval     = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.trainval])
+    train        = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.train])
+    val          = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.val])
+    test         = list([opt.instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in opt.test])
+
+    fat   = 0.5
+    small = 0.1
+
+    train_fat    = train[:int(len(train)*fat)  ]
+    val_fat      = val  [:int(len(val)*fat)  ]
+    test_fat     = test [:int(len(test)*fat)  ]
+    train_small  = train[:int(len(train)*small)]
+    val_small    = val  [:int(len(val)*small)]
+    test_small   = test [:int(len(test)*small)]
     
 #  #  #anno = build_categories ()
 #
@@ -1136,10 +1160,19 @@ def build_dataset ():
 #      test.append (anno[k])
   
     put_json (trainvaltest, opt.__trainvaltest)
-    put_json (train, opt.__train)
     put_json (trainval, opt.__trainval)
-    put_json (val, opt.__val)
-    put_json (test, opt.__test)
+
+    put_json (train, opt.__train)
+    put_json (val,   opt.__val)
+    put_json (test,  opt.__test)
+
+    put_json (train_fat, opt.__train_fat)
+    put_json (val_fat,   opt.__val_fat  )
+    put_json (test_fat,  opt.__test_fat )
+
+    put_json (train_small, opt.__train_small)
+    put_json (val_small,   opt.__val_small  )
+    put_json (test_small,  opt.__test_small )
 
   ##############################################
 
@@ -1149,7 +1182,7 @@ def build_dataset ():
   print ('trainval    (txt) :', len(opt.trainval))
   print ('test        (txt) :', len(opt.test))
 
-  if opt.data == 'nia':
+  if opt.dataset == 'nia':
     print ('trainvaltest(json):', len(trainvaltest))
     print ('train       (json):', len(train))
     print ('val         (json):', len(val))
@@ -1171,9 +1204,9 @@ def build_nia_dataset ():
 
 def build (**kwargs):
   opt._parse(kwargs)
-  callback ('build', opt.data)
+  callback ('build', opt.dataset)
 
-def callback (op, data):
+def callback (op, dataset):
   cb = [
     ['build',   'nia',  build_nia_dataset],
     ['build',   'voc',  build_voc_dataset],
@@ -1186,23 +1219,23 @@ def callback (op, data):
     ['prepare', 'vg',   prepare_vg_dataset],
   ]
 
-  if data != 'nia':
+  if dataset != 'nia':
     opt._clean_up ()
 
-  if data == 'coco':
-    opt.root_dir = 'dataset/COCO'
+  if dataset == 'coco':
+    opt.root_dir = 'dataset/coco'
     opt.data_dir = join(opt.root_dir, 'annotations')
     opt.image_dir = [join(opt.root_dir, 'train2017'), join(opt.root_dir, 'val2017'), join(opt.root_dir, 'test2017')]
     opt.objects = join(opt.root_dir, 'objects.json')
     opt.train_inst = join(opt.data_dir, 'instances_train2017.json')
     opt.val_inst = join(opt.data_dir, 'instances_val2017.json')
 
-  elif data == 'voc':
-    opt.root_dir = 'dataset/VOC/VOC2007'
+  elif dataset == 'voc':
+    opt.root_dir = 'dataset/voc/VOC2007'
     opt.data_dir = join(opt.root_dir, 'annotations')
     opt.image_dir = join(opt.root_dir, 'images')
 
-  elif data == 'vg':
+  elif dataset == 'vg':
     opt.root_dir = 'dataset/GENOME'
     opt.data_dir = join(opt.root_dir, 'top_150_50')
     opt.image_dir = join(opt.root_dir, 'VG_100K')
@@ -1214,7 +1247,7 @@ def callback (op, data):
   for d in cb:
     if d[0] != op:
       continue
-    if d[1] != data:
+    if d[1] != dataset:
       continue
 
     d[2]()

@@ -46,7 +46,8 @@ tf2/
 bak/
 model/
 temp/
-data/COCO
-data/GENOME
-data/NIA
-data/VOC
+dataset/COCO
+dataset/GENOME
+dataset/NIA
+dataset/VOC
+docker/captioning

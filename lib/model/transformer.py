@@ -391,7 +391,7 @@ class TRANSFORMER:
       'EPOCHS':         self.EPOCHS,
       'VOCAB_SIZE':     self.VOCAB_SIZE,
     }
-    path = '{}/{}_{}_v{}_{}_{}_{}/'.format('model', dt.now().strftime('%Y%m%d'), self.dataname, self.VOCAB_SIZE, len_of_train, history.history['acc'][0], history.history['val_acc'][0])
+    path = '{}/{}_{}_v{}_{}_{}_{}/'.format('output', dt.now().strftime('%Y%m%d'), self.dataname, self.VOCAB_SIZE, len_of_train, history.history['acc'][0], history.history['val_acc'][0])
     os.makedirs(path, exist_ok=True)
 
     History (history, path + 'history.png')

@@ -12,7 +12,7 @@ num_workers = num_gpus * 4
 
 class Config:
     data = 'nia'
-    data_dir = 'dataset/NIA/'
+    data_dir = 'dataset'
     captions = join(data_dir, 'captions.json')
     trainval = join(data_dir, 'c_trainval.json')
     train    = join(data_dir, 'c_train.json')
@@ -24,7 +24,7 @@ class Config:
     sample= ''
 
     model = 'efficientnetb0'
-    epoch = 20
+    epoch = 1
     n_caption = 10 #
 
     num_workers      = num_workers
