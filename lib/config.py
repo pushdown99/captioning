@@ -24,7 +24,7 @@ class Config:
     sample= ''
 
     model = 'efficientnetb0'
-    epoch = 1
+    epoch = 30
     n_caption = 10 #
 
     num_workers      = num_workers

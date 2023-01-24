@@ -2,6 +2,7 @@
 
 name=captioning
 port=8000 # pass-thuru port (for port forwarding)
+dir=`pwd`
 
 run()
 {
@@ -22,7 +23,7 @@ run()
         ;;
     run)
         host="${name}-P${port}"
-        sudo docker run -p ${port}:${port}/tcp --name ${host} -h ${host} --ipc=host --mount type=bind,source=/home/hyhwang/repositories/model/${name}/dataset,target=/${name}/dataset --mount type=bind,source=/home/hyhwang/repositories/dataset/NIA/download/origin,target=/${name}/images --mount type=bind,source=/home/hyhwang/repositories/model/${name}/output,target=/${name}/output -it --rm --runtime=nvidia pushdown99/${name} bash
+        sudo docker run -p ${port}:${port}/tcp --name ${host} -h ${host} --ipc=host --mount type=bind,source=${dir}/dataset,target=/${name}/dataset --mount type=bind,source=${dir}/output,target=/${name}/output -it --rm --runtime=nvidia pushdown99/${name} bash
         ;;
     *)
         echo ""

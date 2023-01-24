@@ -51,3 +51,4 @@ dataset/GENOME
 dataset/NIA
 dataset/VOC
 docker/captioning
+output/20*
