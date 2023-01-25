@@ -2,7 +2,7 @@
 
 name=captioning
 port=8000 # pass-thuru port (for port forwarding)
-dir=`pwd`
+work=`pwd`
 
 run()
 {
@@ -23,7 +23,7 @@ run()
         ;;
     run)
         host="${name}-P${port}"
-        sudo docker run -p ${port}:${port}/tcp --name ${host} -h ${host} --ipc=host --mount type=bind,source=${dir}/dataset,target=/${name}/dataset --mount type=bind,source=${dir}/output,target=/${name}/output -it --rm --runtime=nvidia pushdown99/${name} bash
+        sudo docker run -p ${port}:${port}/tcp --name ${host} -h ${host} --ipc=host --gpus all --mount type=bind,source=${work}/dataset,target=/${name}/dataset --mount type=bind,source=${work}/output,target=/${name}/output --mount type=bind,source=${work}/nia,target=/${name}/nia -it --rm --runtime=nvidia pushdown99/${name} bash 
         ;;
     *)
         echo ""
@@ -31,6 +31,7 @@ run()
         echo ""
         echo "       build : build docker image to local repositories"
         echo "       push  : push to remote repositories (docker hub)"
+        echo "       run   : running docker image"
         echo ""
         return 1
         ;;

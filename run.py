@@ -46,7 +46,7 @@ def torch_info ():
 
 def latest_model ():
   model = dict ()
-  for d in glob('model/*_{}_*'.format(opt.data)):
+  for d in glob('output/*_{}_*'.format(opt.data)):
     model[d] =  float(d.split('_')[5])
   return max (model, key=model.get)
 
