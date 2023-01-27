@@ -452,6 +452,9 @@ class TRANSFORMER:
       sampled_token = index_lookup[sampled_token_index]
       if sampled_token == 'eos':
         break
+      if sampled_token == '있다': # hyhwang, sample sentences were too short.
+        decoded_caption += ' ' + sampled_token
+        break
       if sampled_token != '[UNK]':
         decoded_caption += ' ' + sampled_token
 
