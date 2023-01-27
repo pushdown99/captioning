@@ -7,7 +7,7 @@ model|description
 ---|---
 CNN|used to extract the image features. In this application, it used EfficientNetB0 pre-trained on imagenet.
 TransformerEncoder|the extracted image features are then passed to a transformer encoder <br>that generates a new representation of the inputs.
-TransformerDecoder|it takes the encoder output and the text data sequence as inputs and tries to learn to generate the caption.
+TransformerDecoder|it takes the encoder output and the text data sequence as inputs and tries to learn to generate the caption.<br>
 
 (reference github) https://github.com/Dantekk/image-captioning
 
@@ -31,7 +31,7 @@ TransformerDecoder|it takes the encoder output and the text data sequence as inp
 
 ---
 ## installation
-### github download
+### - github download
 
 ~~~console
 $ git clone https://github.com/pushdown99/captioning.git
@@ -46,7 +46,7 @@ $ ls (or tree -d -L 2)
 ├── output
 └── sample
 ~~~
-### venv 
+### - venv 
 
 Read [INSTALL.md](INSTALL.md)
 
@@ -61,7 +61,7 @@ $ python -m ipykernel install --user --name tf2 --display-name "tf2"
 $ pip install ipdb matplotlib pandas climage fire
 ~~~
 
-### docker
+### - docker
 
 for the runtime nvidia-docker environment installation <br>
 read [NVIDIA-DOCKER-INSTALL](NVIDIA-DOCKER-INSTALL.md)
@@ -73,7 +73,7 @@ or
 $ sudo docker run --gpus all -it --rm --runtime=nvidias pushdown99/captioning bash
 ~~~
 
-## jupyter notebook
+## - jupyter notebook
 
 ~~~console
 $ ./jupyter.sh
@@ -86,28 +86,31 @@ $ jupyter notebook --ip=0.0.0.0 --port=8000 --NotebookApp.iopub_data_rate_limit=
 ## Dataset
 The model has been trained on train/val NIA dataset. You can download the dataset here. Note that test images are not required for this code to work.
 
-Original dataset has (A) images and (B) validation images; for each image there is a number of captions between 1 and 10. I have preprocessing the dataset per to keep only images that have exactly 10 captions. In fact, the model has been trained to ensure that 10 captions are assigned for each image. After this filtering, the final dataset has (A) train images and (B) validation images.
-Finally, I serialized the dataset into two json files which you can find in:
+dataset/c_train.json
+dataset/c_val.json
 
-NIA_dataset/c_train.json
-NIA_dataset/c_val.json
+Each element in the train.json file has such a structure :
+"images/IMG_0061865_(...).jpg": ["caption1", "caption2", "caption3", "caption4", ..."caption10"], ...
 
-Each element in the c_train.json file has such a structure :
-"NIA_dataset/images/IMG_0061865_(...).jpg": ["caption1", "caption2", "caption3", "caption4", ..."caption10"], ...
+In same way in the val.json :
+"images/IMG_0061865_(...).jpg": ["caption1", "caption2", "caption3", "caption4", ..."caption10"], ...
 
-In same way in the c_val.json :
-"NIA_dataset/images/IMG_0061865_(...).jpg": ["caption1", "caption2", "caption3", "caption4", ..."caption10"], ...
-
-##Dependencies
+### - dependencies
 I have used the following versions for code work:
 
-python: 3.9.10
-tensorflow: 2.9.3
-cuda: 11.2
-cudnn: 8
+code work|version
+---|---
+python|3.8.10
+tensorflow|2.11.0
+cuda|11.2
+cudnn|8
+numpy|1.23.1
 
-#setting
-For my training session, I have get best results with this `lib/config.py` file :
+### - setting
+
+~~~console
+$ cat lib/config.py
+~~~
 
 ~~~python
 
