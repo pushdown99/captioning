@@ -1,21 +1,34 @@
 # image captioning
 
-keras/tensorflow image captioning application using CNN and transformer as encoder/decoder.
+keras/tensorflow image captioning application using CNN and transformer as encoder/decoder.<br>
 In particulary, the architecture consists of three models:
 
 model|description
 ---|---
 CNN|used to extract the image features. In this application, it used EfficientNetB0 pre-trained on imagenet.
-TransformerEncoder|the extracted image features are then passed to a transformer encoder that generates a new representation of the inputs.
+TransformerEncoder|the extracted image features are then passed to a transformer encoder <br>that generates a new representation of the inputs.
 TransformerDecoder|it takes the encoder output and the text data sequence as inputs and tries to learn to generate the caption.
 
 (reference github) https://github.com/Dantekk/image-captioning
 
+---
+1. [Progress](#Progress)
+2. [Dataset](#Dataset) 
+3. [Training](#Training)
+4. [Evaluate](#Evaluate)
+5. [Inference](#Inference)
+6. [Result](#Result)
+7. [Comparison](#Comparison)
+---
+
 ## Progress
 - [x] guide for project setup
-- [x] guide for model evaluation with pretrained model
-- [x] guide for model training
 - [x] uploading pretrained model and format-compatible datasets.
+- [x] guide for model training
+- [x] guide for model evaluation with pretrained model
+- [x] guide for model inferencing example
+
+---
 
 ## Dataset
 The model has been trained on train/val NIA dataset. You can download the dataset here. Note that test images are not required for this code to work.
@@ -42,7 +55,9 @@ cudnn: 8
 
 #setting
 For my training session, I have get best results with this `lib/config.py` file :
+
 ~~~python
+
 num_gpus    = len(tf.config.list_physical_devices('GPU'))
 num_workers = num_gpus * 4
 
@@ -93,19 +108,55 @@ class Config:
 opt = Config()
 ~~~
 
-##Training
+---
+
+## Training
 To train the model you need to follow the following steps :
 
 you have to make sure that the training and valid set images are in the folder NIA_dataset/images/ 
 you have to enter all the parameters necessary for the training in the config.py file.
 start the model training with python run.py train
 
-```powershell
-foo@bar cp lib/config.nia lib/config.py
-foo@bar python run.py train --data=nia
-```
+~~~console
+$ cp lib/config.nia lib/config.py
+$ python run.py train --data=nia
+~~~
 
-```powershell
-nohup python run.py train --data=nia > train.nia.out &
-tail -f train.nia.out
-```
+~~~console
+$ nohup python run.py train --data=nia > train.nia.out &
+$ tail -f train.nia.out
+~~~
+---
+## Evaluate
+To evaluate the model you need to follow the following steps :
+
+~~~console
+$ nohup python run.py eval --data=nia > eval.nia.out &
+$ tail -f eval.nia.out
+~~~
+---
+## Inference
+To iniference the model you need to follow the following steps :
+
+~~~console
+$ nohup python run.py inference --data=nia --sample={sample image}
+$ python run.py inference --sample='sample/IMG_0047936_cell_phone.jpg'
+Prediction:  휴대폰 이 나무 테이블 위 에 있다
+~~~
+![](sample/IMG_0047936_cell_phone.jpg)
+
+---
+## Result
+When you evaluate model with a cleansing dataset,
+then show this results.
+
+bleu|result
+---|---
+BLEU-1|75.91 %
+BLEU-2|62.23 %
+BLEU-3|50.18 %
+BLEU-4|36.37 %
+
+---
+## Comparison
+
