@@ -53,8 +53,8 @@ class Option:
 
   # for build option
   min_per_class = 50
-  num_per_class = 3000
-  limits = 30000
+  num_per_class = 60000
+  limits = 100000
   split  = [0.8, 0.1]
 
   # for processing
@@ -258,27 +258,47 @@ def relation_verify (r, o, c, i, offset = True):
 
   return r[o], -1
 
-def class_to_relationships (objects, relations):
+def class_to_relationships (objs, relations):
+  # reduce and drop objecti, non-referenced
+  classes = [o['class'] for o in objs]
+  indexes = numpy.array(classes)
+  idx  = list ()
+
+  for i, r in enumerate (relations):
+    sub_id, sub_idx = relation_verify (r, 'entity1', classes, indexes)
+    obj_id, obj_idx = relation_verify (r, 'entity2', classes, indexes, False)
+    if sub_idx >= 0 and obj_idx >= 0:
+      idx.append (sub_idx)
+      idx.append (obj_idx)
+
+  idx = list(set(idx))
+  idx.sort ()
+
+  objects = list ()
+  for i in idx:
+    objects.append (objs[i])
+
   classes = [o['class'] for o in objects]
   indexes = numpy.array(classes)
-  data = list ()
   _l   = list ()
   _ul  = list ()
+
+  relationships = list ()
 
   for i, r in enumerate (relations):
     sub_id, sub_idx = relation_verify (r, 'entity1', classes, indexes)
     obj_id, obj_idx = relation_verify (r, 'entity2', classes, indexes, False)
     predicate = r['relation'].lower()
-    _ul = list ()
+    #_ul = list () # hyhwang?
 
     if sub_idx >= 0 and obj_idx >= 0:
       d = {'sub_id': sub_idx, 'sub': sub_id, 'predicate': predicate, 'obj_id': obj_idx, 'obj': obj_id}
-      data.append (d)
+      relationships.append (d)
       _l.append (i)
     if sub_idx < 0: _ul.append (sub_id)
     if obj_idx < 0: _ul.append (obj_id)
 
-  return data, _l, _ul
+  return relationships, objects, _l, _ul
 
 WEIGHT = 100.0
 
@@ -592,9 +612,11 @@ def load_instances (images, bboxes, captions, relations, update = False):
 
     name, cls, ins = get_name_cls_ins (images[k])
 
+    ## check hyhwang (rel_cnt)
     ## objects
-    instances[k]['objects'] = [{'box': convert_box_wh_xy (o['box']), 'class': o['class']} for o in instances[k]['_b_']]
-    instances[k]['relationships'], _l, _ul  = class_to_relationships (instances[k]['_b_'], instances[k]['_r_'])
+    #instances[k]['objects'] = [{'box': convert_box_wh_xy (o['box']), 'class': o['class']} for o in instances[k]['_b_']]
+    instances[k]['relationships'], objects, _l, _ul  = class_to_relationships (instances[k]['_b_'], instances[k]['_r_'])
+    instances[k]['objects'] = [{'box': convert_box_wh_xy (o['box']), 'class': o['class']} for o in objects]
 
     for d in instances[k]['relationships']:
       pred = d['predicate']
@@ -647,6 +669,14 @@ def load_instances (images, bboxes, captions, relations, update = False):
         region['phrase2'] = ko.split ()
 
       instances[k]['regions'].append (region)
+
+    if len (instances[k]['relationships']) == 0:
+      del instances[k]
+      continue
+
+    if len (instances[k]['regions']) == 0:
+      del instances[k]
+      continue
 
     ###########################################################
     #
@@ -705,6 +735,7 @@ def load_instances (images, bboxes, captions, relations, update = False):
       caps[k] = instances[k]['captions']['korean']
     else:
       caps[k] = instances[k]['captions']['english']
+
 
   ###############################################################################
 
