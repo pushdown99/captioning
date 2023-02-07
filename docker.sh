@@ -12,6 +12,7 @@ run()
         mkdir -p docker/${name}
         cp -r dataset docker/${name}/
         cp -r lib docker/${name}/
+        cp -r sample docker/${name}/
         cp -r *.py docker/${name}/
         cp -r *.txt docker/${name}/
         cp -r *.sh docker/${name}/

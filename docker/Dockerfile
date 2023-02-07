@@ -41,4 +41,5 @@ RUN pip install gensim GPUtil tabulate
 RUN apt-get install --allow-change-held-packages libcudnn8=8.1.0.77-1+cuda11.2 -y
 WORKDIR /captioning
 RUN ln -sf nia/images images
-
+RUN apt-get update
+RUN apt-get install -yq dnsutils --fix-missing

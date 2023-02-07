@@ -95,6 +95,23 @@ Each element in the train.json file has such a structure :
 In same way in the val.json :
 "images/IMG_0061865_(...).jpg": ["caption1", "caption2", "caption3", "caption4", ..."caption10"], ...
 
+download here. [https://drive.google.com/drive/folders/1IDOSzoIjo5dsJ-KgR3mMwUXaHKo2MGJJ?usp=sharing](Nhttps://drive.google.com/drive/folders/1IDOSzoIjo5dsJ-KgR3mMwUXaHKo2MGJJ?usp=sharing)
+
+tarball|descriptions
+---|---
+captioning.dataset.tare.gz|cleansing dataset
+captioning.model.tare.gz|pretrained model
+
+~~~console
+$ mkdir dataset
+$ cd dataset
+$ tar xvfz captioning.dataset.tare.gz
+$ cd ..
+$ mkdir model
+$ cd model
+$ tar xvfz captioning.model.tare.gz
+~~~
+
 ### - dependencies
 I have used the following versions for code work:
 
