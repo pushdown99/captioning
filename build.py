@@ -24,10 +24,11 @@ class Option:
   kor2eng_json    = join(info_dir, 'kor2eng.json')
 
   #
-  dicts_json      = join(info_dir, 'dict.json')
-  categories_json = join(info_dir, 'categories.json')
-  inv_weight_json = join(info_dir, 'inverse_weight.json')
-  forbidden_json  = join(info_dir, 'forbidden.json')
+  dicts_json          = join(info_dir, 'dict.json')
+  categories_json     = join(info_dir, 'categories.json')
+  inv_weight_json     = join(info_dir, 'inverse_weight.json')
+  forbidden_json      = join(info_dir, 'forbidden.json')
+  not_avail_pred_json = join(info_dir, 'not_avail_pred.json')
 
   # for save file
   files_json      = join(info_dir, '_files.json')
@@ -155,7 +156,8 @@ def put_text (d, f):
 #  '제목의',
 #  '제목이'
 #]
-forbidden = load_json (opt.forbidden_json)
+forbidden      = load_json (opt.forbidden_json)
+not_avail_pred = load_json (opt.not_avail_pred_json)
 
 def is_malformed_sentence (s):
   for f in forbidden:
@@ -259,7 +261,8 @@ def relation_verify (r, o, c, i, offset = True):
   return r[o], -1
 
 def class_to_relationships (objs, relations):
-  # reduce and drop objecti, non-referenced
+
+  # reduce and drop malformed relation {illegal objects and predicate}
   classes = [o['class'] for o in objs]
   indexes = numpy.array(classes)
   idx  = list ()
@@ -267,7 +270,7 @@ def class_to_relationships (objs, relations):
   for i, r in enumerate (relations):
     sub_id, sub_idx = relation_verify (r, 'entity1', classes, indexes)
     obj_id, obj_idx = relation_verify (r, 'entity2', classes, indexes, False)
-    if sub_idx >= 0 and obj_idx >= 0:
+    if sub_idx >= 0 and obj_idx >= 0 and not r['relation'] in not_avail_pred:
       idx.append (sub_idx)
       idx.append (obj_idx)
 
@@ -278,20 +281,39 @@ def class_to_relationships (objs, relations):
   for i in idx:
     objects.append (objs[i])
 
+  # class to relationships
   classes = [o['class'] for o in objects]
   indexes = numpy.array(classes)
   _l   = list ()
   _ul  = list ()
 
   relationships = list ()
+  _relations = list () # check duplicated
 
   for i, r in enumerate (relations):
     sub_id, sub_idx = relation_verify (r, 'entity1', classes, indexes)
     obj_id, obj_idx = relation_verify (r, 'entity2', classes, indexes, False)
     predicate = r['relation'].lower()
+    predicate = predicate.replace(' ','') # remove space
+
+    # n/a predicate
+    if predicate in not_avail_pred:
+      continue
+
     #_ul = list () # hyhwang?
 
     if sub_idx >= 0 and obj_idx >= 0:
+      # remove same objects relations
+      if sub_id == obj_id:
+        continue
+
+      # remove duplicated relations
+      key = sub_id + '|' + predicate + '|' + obj_id
+      if key in _relations:
+        continue
+
+      _relations.append (key)
+
       d = {'sub_id': sub_idx, 'sub': sub_id, 'predicate': predicate, 'obj_id': obj_idx, 'obj': obj_id}
       relationships.append (d)
       _l.append (i)
@@ -848,6 +870,49 @@ def build (**kwargs):
   _test         = list ()
 
   _trainvaltest = list([instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in trainvaltest])
+
+  #### re-build categories
+  obj_dicts  = dict ()
+  pred_dicts = dict ()
+
+  for v in _trainvaltest:
+    for r in v['relationships']:
+      s = r['sub']
+      o = r['obj']
+      p = r['predicate']
+      if not s in obj_dicts:
+        obj_dicts[s] = 0
+      if not o in obj_dicts:
+        obj_dicts[o] = 0
+      if not p in pred_dicts:
+        pred_dicts[p] = 0
+
+      obj_dicts[s] += 1
+      obj_dicts[o] += 1
+      pred_dicts[p] += 1
+
+  print (obj_dicts)
+  print (pred_dicts)
+      
+  categories = dict ()
+  inv_weight = dict ()
+
+  categories['predicate'] = list(pred_dicts.keys())
+  categories['object']    = list(obj_dicts.keys())
+
+  inv_weight['predicate'] = inverse_weight (pred_dicts)
+  inv_weight['object']    = inverse_weight (obj_dicts)
+
+  obj_dicts  = dict(sorted(obj_dicts.items(), key=lambda item: item[1], reverse=True))
+  pred_dicts = dict(sorted(pred_dicts.items(), key=lambda item: item[1], reverse=True))
+
+  put_json (inv_weight, opt.inv_weight_json)
+  put_json (categories, opt.categories_json)
+  put_json (pred_dicts, opt.pred_dicts_json)
+  put_json (obj_dicts,  opt.obj_dicts_json)
+
+
+  ########################
   _trainval     = list([instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in trainval])
   _train        = list([instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in train])
   _val          = list([instances[k.split('_')[0]+'_'+k.split('_')[1]] for k in val])

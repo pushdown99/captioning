@@ -44,7 +44,7 @@ $ ls (or tree -d -L 2)
 │   ├── model
 │   └── __pycache__
 ├── output
-└── sample
+└── samples
 ~~~
 ### - venv 
 
@@ -216,15 +216,15 @@ To inference the model you need to follow the following steps :
 
 ~~~console
 $ source tf2/bin/activate
-$ nohup python run.py inference --data=nia --sample={sample image}
-$ python run.py inference --sample='sample/IMG_0047936_cell_phone.jpg'
+$ nohup python run.py inference --data=nia --samples={sample image}
+$ python run.py inference --sample='samples/IMG_0047936_cell_phone.jpg'
 Prediction:  휴대폰 이 나무 테이블 위 에 있다
 ~~~
-![](sample/_IMG_0047936_cell_phone.jpg)
+![](samples/_IMG_0047936_cell_phone.jpg)
 
 original image:
 
-![](sample/IMG_0047936_cell_phone.jpg)
+![](samples/IMG_0047936_cell_phone.jpg)
 
 ---
 ## Result

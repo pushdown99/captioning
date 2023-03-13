@@ -36,7 +36,12 @@ RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' >> /etc/bash.bashrc
 RUN echo 'ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime' >> /etc/bash.bashrc
 
 RUN python -m ipykernel install --user --name torch --display-name "torch"
-RUN pip install gensim GPUtil tabulate
+
+RUN apt-get update && apt-get install -y apt-transport-https
+RUN apt-get install -yq graphviz graphviz-dev
+RUN apt-get install -yq dnsutils
+RUN python -m pip install --upgrade pip
+RUN pip install --root-user-action=ignore gensim GPUtil tabulate graphviz jupyter
 
 RUN apt-get install --allow-change-held-packages libcudnn8=8.1.0.77-1+cuda11.2 -y
 WORKDIR /captioning

@@ -1,5 +1,5 @@
 #!/bin/bash
-dataset=~/workspaces/dataset/nia/info
+dataset=~/workspaces/dataset/coco/info
 
 cp ${dataset}/captions.json .
 cp ${dataset}/c_train.json .

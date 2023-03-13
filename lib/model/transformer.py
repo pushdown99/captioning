@@ -101,10 +101,10 @@ class TransformerEncoderBlock (layers.Layer):
     self.dense_proj  = layers.Dense(embed_dim, activation='relu')
     self.layernorm_1 = layers.LayerNormalization()
 
-  def call(self, inputs, training, mask=None):
-    inputs = self.dense_proj(inputs)
+  def call (self, inputs, training, mask=None):
+    inputs           = self.dense_proj(inputs)
     attention_output = self.attention(query=inputs, value=inputs, key=inputs, attention_mask=None)
-    proj_input = self.layernorm_1(inputs + attention_output)
+    proj_input       = self.layernorm_1(inputs + attention_output)
 
     return proj_input
 
@@ -155,7 +155,7 @@ class TransformerDecoderBlock(layers.Layer):
     self.supports_masking = True
 
 
-  def call(self, inputs, encoder_outputs, training, mask=None):
+  def call (self, inputs, encoder_outputs, training, mask=None):
     inputs      = self.embedding(inputs)
     causal_mask = self.get_causal_attention_mask(inputs)
     inputs      = self.dropout_1(inputs, training=training)
@@ -200,7 +200,7 @@ class TransformerDecoderBlock(layers.Layer):
 
     return tf.tile(mask, mult)
 
-class ImageCaptioningModel(keras.Model):
+class ImageCaptioningModel (keras.Model):
   def __del__ (self):
     print('[-] ImageCaptioningModel deleted.')
 
@@ -239,7 +239,7 @@ class ImageCaptioningModel(keras.Model):
     batch_acc  = 0
     img_embed  = self.cnn_model(batch_img)
 
-    for i in range(self.num_captions_per_image):
+    for i in range(self.num_captions_per_image): # hyhwang: (todo) do not using constants.
       with tf.GradientTape() as tape:
         encoder_out    = self.encoder(img_embed, training=True)
         batch_seq_inp  = batch_seq[:, i, :-1]
@@ -309,73 +309,73 @@ class TRANSFORMER:
     print('Number of devices: {}'.format(self.strategy.num_replicas_in_sync))
 
   def tokenize (self, data, max_vocab_size, seq_length):
-    if not isfile(opt.tokenize):
-      text_dataset = tf.data.Dataset.from_tensor_slices(data)
+    if not isfile (opt.tokenize):
+      text_dataset = tf.data.Dataset.from_tensor_slices (data)
       self.TOKENIZER = tf.keras.layers.TextVectorization (
         max_tokens             = max_vocab_size,
         output_mode            = 'int',
         output_sequence_length = seq_length, # input_dim
         standardize            = custom_standardization,
       )
-      print('Start tokenize: lines # ', len(data))
-      start = timer()
-      self.TOKENIZER.adapt (text_dataset.batch(1024))
-      self.VOCAB_SIZE = len(self.TOKENIZER.get_vocabulary())
-      end   = timer()
+      print ('Start tokenize: lines # ', len (data))
+      start = timer ()
+      self.TOKENIZER.adapt (text_dataset.batch (1024))
+      self.VOCAB_SIZE = len (self.TOKENIZER.get_vocabulary ())
+      end   = timer ()
       elapsed = (end-start)
-      print('Elapsed time: ', str(datetime.timedelta(elapsed)))
-      dump({'config': self.TOKENIZER.get_config(), 'weights': self.TOKENIZER.get_weights()} , open(opt.tokenize, "wb"))
+      print ('Elapsed time: ', str (datetime.timedelta (elapsed)))
+      dump ({'config': self.TOKENIZER.get_config (), 'weights': self.TOKENIZER.get_weights ()} , open (opt.tokenize, "wb"))
     else:
-      token = load(open(opt.tokenize, 'rb'))
+      token = load (open (opt.tokenize, 'rb'))
       self.TOKENIZER = tf.keras.layers.TextVectorization (
         max_tokens             = token['config']['max_tokens'],
         output_mode            = 'int',
         output_sequence_length = token['config']['output_sequence_length'],
         standardize            = custom_standardization,
       )
-      self.TOKENIZER.adapt(tf.data.Dataset.from_tensor_slices(["xyz"]))
-      self.TOKENIZER.set_weights(token['weights'])
-      self.VOCAB_SIZE = len(self.TOKENIZER.get_vocabulary())
-      print (self.TOKENIZER("example"))
+      self.TOKENIZER.adapt (tf.data.Dataset.from_tensor_slices (["xyz"]))
+      self.TOKENIZER.set_weights (token['weights'])
+      self.VOCAB_SIZE = len (self.TOKENIZER.get_vocabulary ())
+      print (self.TOKENIZER ("example"))
 
-  def read_image_inf(self, images):
-    img = tf.io.read_file(images)
-    img = tf.image.decode_jpeg(img, channels=3)
-    img = tf.image.resize(img, (299, 299))
-    img = tf.image.convert_image_dtype(img, tf.float32)
-    img = tf.expand_dims(img, axis=0)
+  def read_image_inf (self, images):
+    img = tf.io.read_file (images)
+    img = tf.image.decode_jpeg (img, channels=3)
+    img = tf.image.resize (img, (299, 299))
+    img = tf.image.convert_image_dtype (img, tf.float32)
+    img = tf.expand_dims (img, axis=0)
     return img
 
-  def read_image(self, data_augment_flag):
-    def decode_image(img_path):
-      image = tf.io.read_file(img_path)
-      image = tf.image.decode_jpeg(image, channels=3)
-      image = tf.image.resize(image, (299, 299))
+  def read_image (self, data_augment_flag):
+    def decode_image (img_path):
+      image = tf.io.read_file (img_path)
+      image = tf.image.decode_jpeg (image, channels=3)
+      image = tf.image.resize (image, (299, 299))
 
       if data_augment_flag:
-        image = augment(image)
-      image = tf.image.convert_image_dtype(image, tf.float32)
+        image = augment (image)
+      image = tf.image.convert_image_dtype (image, tf.float32)
 
       return image
 
-    def augment(image):
-      image = tf.expand_dims(image, axis=0)
-      image = self.image_transfer(image)
-      image = tf.squeeze(image, axis=0)
+    def augment (image):
+      image = tf.expand_dims (image, axis=0)
+      image = self.image_transfer (image)
+      image = tf.squeeze (image, axis=0)
       return img
 
     return decode_image
 
   def make_dataset (self, title, images, captions, data_augment_flag, tokenizer, batch_size, shuffle_dim):
-    for i in tqdm(range(1), desc=title):
+    for i in tqdm (range (1), desc=title):
       AUTOTUNE = tf.data.AUTOTUNE
-      read_image_xx   = self.read_image(data_augment_flag)
-      image_dataset   = tf.data.Dataset.from_tensor_slices(images)
-      image_dataset   = (image_dataset.map(read_image_xx, num_parallel_calls=AUTOTUNE))
-      caption_dataset = tf.data.Dataset.from_tensor_slices(captions).map(tokenizer, num_parallel_calls=AUTOTUNE)
+      read_image_xx   = self.read_image (data_augment_flag)
+      image_dataset   = tf.data.Dataset.from_tensor_slices (images)
+      image_dataset   = (image_dataset.map (read_image_xx, num_parallel_calls=AUTOTUNE))
+      caption_dataset = tf.data.Dataset.from_tensor_slices (captions).map (tokenizer, num_parallel_calls=AUTOTUNE)
 
-      dataset         = tf.data.Dataset.zip((image_dataset, caption_dataset))
-      dataset         = dataset.batch(batch_size).shuffle(shuffle_dim).prefetch(AUTOTUNE)
+      dataset         = tf.data.Dataset.zip ((image_dataset, caption_dataset))
+      dataset         = dataset.batch (batch_size).shuffle (shuffle_dim).prefetch (AUTOTUNE)
 
     return dataset
 
@@ -420,7 +420,7 @@ class TRANSFORMER:
 
     encoder = TransformerEncoderBlock (embed_dim=EMBED_DIM, dense_dim=FF_DIM, num_heads=NUM_HEADS)
     decoder = TransformerDecoderBlock (embed_dim=EMBED_DIM, ff_dim=FF_DIM, num_heads=NUM_HEADS, seq_length=SEQ_LENGTH, vocab_size=VOCAB_SIZE)
-    model   = ImageCaptioningModel(cnn_model=cnn_model, encoder=encoder, decoder=decoder)
+    model   = ImageCaptioningModel (cnn_model=cnn_model, encoder=encoder, decoder=decoder)
 
     ##### It's necessary for init model -> without it, weights subclass model fails
     #cnn_input = tf.keras.layers.Input(shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3))
@@ -450,12 +450,24 @@ class TRANSFORMER:
       )
       sampled_token_index = np.argmax(predictions[0, i, :])
       sampled_token = index_lookup[sampled_token_index]
-      if sampled_token == 'eos':
+      if sampled_token == 'eos': # end of sentences
         break
-      if sampled_token == '있다': # hyhwang, sample sentences were too short.
+
+      words = decoded_caption.split() # hyhwang, repeated words
+
+      if sampled_token == '있다': # hyhwang, terminal korean word
         decoded_caption += ' ' + sampled_token
         break
-      if sampled_token != '[UNK]':
+
+      if words[-1] == sampled_token: # repeated word
+        x = 1
+        #decoded_caption = decoded_caption
+
+      elif words[-1] == 'sos' and sampled_token == 'of': # malformed sentences
+        x = 2
+        #decoded_caption = decoded_caption
+
+      elif sampled_token != '[UNK]':
         decoded_caption += ' ' + sampled_token
 
     return decoded_caption.replace('sos ', '')
@@ -492,7 +504,7 @@ class TRANSFORMER:
     tokenizer = tf.keras.models.load_model(join(path, 'tokenizer'))
     tokenizer = tokenizer.layers[1]
 
-    print ('[+] get inference model:', join(path, 'cofnig.json'))
+    print ('[+] get inference model:', join(path, 'config.json'))
     model = self.get_inference_model(join(path, 'config.json'))
 
     print ('[+] loading weight     :', join(path, 'model_weight.h5'))
@@ -539,10 +551,10 @@ class TRANSFORMER:
     texts        =  json.load(codecs.open(opt.text,     'r', 'utf-8-sig'))
 
     self.image_transfer = tf.keras.Sequential([
-      tf.keras.layers.experimental.preprocessing.RandomContrast(factor=(0.05, 0.15)),
-      tf.keras.layers.experimental.preprocessing.RandomTranslation(height_factor=(-0.10, 0.10), width_factor=(-0.10, 0.10)),
-      tf.keras.layers.experimental.preprocessing.RandomZoom(height_factor=(-0.10, 0.10), width_factor=(-0.10, 0.10)),
-      tf.keras.layers.experimental.preprocessing.RandomRotation(factor=(-0.10, 0.10))
+      tf.keras.layers.experimental.preprocessing.RandomContrast    (factor = (0.05, 0.15)),
+      tf.keras.layers.experimental.preprocessing.RandomTranslation (height_factor = (-0.10, 0.10), width_factor = (-0.10, 0.10)),
+      tf.keras.layers.experimental.preprocessing.RandomZoom        (height_factor = (-0.10, 0.10), width_factor = (-0.10, 0.10)),
+      tf.keras.layers.experimental.preprocessing.RandomRotation    (factor = (-0.10, 0.10))
     ])
 
     self.tokenize (texts, self.MAX_VOCAB_SIZE, self.SEQ_LENGTH)
@@ -551,24 +563,24 @@ class TRANSFORMER:
       if len(trains[k]) != opt.n_caption:
         print ('caption data error', opt.n_caption, k, trains[k])
 
-
     ds_train = self.make_dataset('train', list(trains.keys()), list(trains.values()), False, self.TOKENIZER, self.BATCH_SIZE, self.SHUFFLE_DIM)
     ds_valid = self.make_dataset('valid', list(valids.keys()), list(valids.values()), False, self.TOKENIZER, self.BATCH_SIZE, self.SHUFFLE_DIM)
     ds_test  = self.make_dataset('test ', list(tests.keys()),  list(tests.values()),  False, self.TOKENIZER, self.BATCH_SIZE, self.SHUFFLE_DIM)
 
-    #with self.strategy.scope():
+    # with self.strategy.scope():
     encoder    = TransformerEncoderBlock (embed_dim=self.EMBED_DIM, dense_dim=self.FF_DIM, num_heads=self.NUM_HEADS)
     decoder    = TransformerDecoderBlock (embed_dim=self.EMBED_DIM, ff_dim=self.FF_DIM, num_heads=self.NUM_HEADS, seq_length=self.SEQ_LENGTH, vocab_size=self.VOCAB_SIZE)
     model      = ImageCaptioningModel    (self.cnn_model, encoder, decoder)
 
-    cross_entropy  = SparseCategoricalCrossentropy(from_logits=True, reduction='none')
-    early_stopping = EarlyStopping(patience=3, restore_best_weights=True)
-    lr_scheduler   = custom_schedule(self.EMBED_DIM)
-    optimizer      = Adam(learning_rate=lr_scheduler, beta_1=0.9, beta_2=0.98, epsilon=1e-9)
+    cross_entropy  = SparseCategoricalCrossentropy (from_logits=True, reduction='none')
+    #early_stopping = EarlyStopping (patience=3, restore_best_weights=True)
+    early_stopping = EarlyStopping (monitor='val_accuracy', patience=8, min_delta=0.001, restore_best_weights=True, mode='max')
+    lr_scheduler   = custom_schedule (self.EMBED_DIM)
+    optimizer      = Adam (learning_rate=lr_scheduler, beta_1=0.9, beta_2=0.98, epsilon=1e-9)
 
-    model.compile(optimizer=optimizer, loss=cross_entropy)
+    model.compile (optimizer=optimizer, loss=cross_entropy)
 
-    history = model.fit(
+    history = model.fit (
       ds_train, 
       epochs=num_of_epochs, 
       validation_data=ds_valid, 
@@ -576,34 +588,34 @@ class TRANSFORMER:
       verbose = 1,
     )
     self.stopped_epoch = early_stopping.stopped_epoch
-    print('stopped_epoch: ', self.stopped_epoch)
+    print ('stopped_epoch: ', self.stopped_epoch)
 
     # Compute definitive metrics on train/valid set
-    mt_train = model.evaluate(ds_train, batch_size=self.BATCH_SIZE)
-    mt_valid = model.evaluate(ds_valid, batch_size=self.BATCH_SIZE)
-    mt_test  = model.evaluate(ds_test,  batch_size=self.BATCH_SIZE)
+    mt_train = model.evaluate (ds_train, batch_size=self.BATCH_SIZE)
+    mt_valid = model.evaluate (ds_valid, batch_size=self.BATCH_SIZE)
+    mt_test  = model.evaluate (ds_test,  batch_size=self.BATCH_SIZE)
 
-    print('Train Loss = %.4f - Train Accuracy = %.4f' % (mt_train[0], mt_train[1]))
-    print('Valid Loss = %.4f - Valid Accuracy = %.4f' % (mt_valid[0], mt_valid[1]))
-    print('Test  Loss = %.4f - Test  Accuracy = %.4f' % (mt_test[0],  mt_test[1]) )
+    print ('Train Loss = %.4f - Train Accuracy = %.4f' % (mt_train[0], mt_train[1]))
+    print ('Valid Loss = %.4f - Valid Accuracy = %.4f' % (mt_valid[0], mt_valid[1]))
+    print ('Test  Loss = %.4f - Test  Accuracy = %.4f' % (mt_test[0],  mt_test[1]) )
 
-    self.save (model, history, len(trains), len(valids), len(tests), 2)
+    self.save (model, history, len (trains), len (valids), len (tests), 2)
 
-  # calculate BLEU score
+  # Calculate BLEU score
   def calculate_scores (self, path, actual, predicted, display = False):
-    if ' '.join(predicted[0]) == '': return
+    if ' '.join (predicted[0]) == '': return
 
-    smooth = SmoothingFunction().method4
-    bleu1 = corpus_bleu(actual, predicted, weights=(1.0, 0, 0, 0),           smoothing_function=smooth)*100
-    bleu2 = corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0),         smoothing_function=smooth)*100
-    bleu3 = corpus_bleu(actual, predicted, weights=(0.3, 0.3, 0.3, 0),       smoothing_function=smooth)*100
-    bleu4 = corpus_bleu(actual, predicted, weights=(0.25, 0.25, 0.25, 0.25), smoothing_function=smooth)*100
+    smooth = SmoothingFunction ().method4
+    bleu1 = corpus_bleu (actual, predicted, weights=(1.0, 0, 0, 0),           smoothing_function=smooth)*100
+    bleu2 = corpus_bleu (actual, predicted, weights=(0.5, 0.5, 0, 0),         smoothing_function=smooth)*100
+    bleu3 = corpus_bleu (actual, predicted, weights=(0.3, 0.3, 0.3, 0),       smoothing_function=smooth)*100
+    bleu4 = corpus_bleu (actual, predicted, weights=(0.25, 0.25, 0.25, 0.25), smoothing_function=smooth)*100
 
     if display:
-      print('BLEU-1: %f' % bleu1)
-      print('BLEU-2: %f' % bleu2)
-      print('BLEU-3: %f' % bleu3)
-      print('BLEU-4: %f' % bleu4)
+      print ('BLEU-1: %f' % bleu1)
+      print ('BLEU-2: %f' % bleu2)
+      print ('BLEU-3: %f' % bleu3)
+      print ('BLEU-4: %f' % bleu4)
 
     self.bleuc += 1
     self.bleu1 += bleu1
@@ -611,11 +623,11 @@ class TRANSFORMER:
     self.bleu3 += bleu3
     self.bleu4 += bleu4
 
-    score = dict()
-    score['path']  = path
-    score['bleu1'] = bleu1
-    score['predicted']  = ' '.join(predicted[0])
-    score['actual']  = list([' '.join(d) for d in actual[0]])
+    score = dict ()
+    score['path']       = path
+    score['bleu1']      = bleu1
+    score['predicted']  = ' '.join (predicted[0])
+    score['actual']     = list ([' '.join (d) for d in actual[0]])
     self.scores.append (score)
 
 
@@ -664,7 +676,7 @@ class efficientnetb0 (TRANSFORMER):
     self.NUM_HEADS      = opt.NUM_HEADS
 
     #with self.strategy.scope():
-    model = EfficientNetB0(input_shape=(*self.IMAGE_SHAPE, 3), include_top=False, weights='imagenet',)
-    model = Model(model.input, layers.Reshape((-1, 1280))(model.output))
+    model          = EfficientNetB0 (input_shape=(*self.IMAGE_SHAPE, 3), include_top=False, weights='imagenet',)
+    model          = Model (model.input, layers.Reshape((-1, 1280))(model.output))
     self.cnn_model = model
 

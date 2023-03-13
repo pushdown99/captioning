@@ -1,0 +1,45 @@
+[+] Information: {'tensorflow': '2.11.0', 'python': '3.9.16', 'cuda': '11.2', 'cudnn': '8'}
+======user config========
+{'BATCH_SIZE': 64,
+ 'EMBED_DIM': 512,
+ 'FF_DIM': 1024,
+ 'IMAGE_SHAPE': (299, 299),
+ 'MAX_VOCAB_SIZE': 2000000,
+ 'NUM_HEADS': 6,
+ 'SEQ_LENGTH': 25,
+ 'SHUFFLE_DIM': 512,
+ 'captions': 'dataset/captions.json',
+ 'data': 'nia',
+ 'data_dir': 'dataset',
+ 'epoch': 30,
+ 'model': 'efficientnetb0',
+ 'n_caption': 10,
+ 'num_workers': 4,
+ 'sample': '',
+ 'test': 'dataset/c_test.json',
+ 'test_num_workers': 4,
+ 'text': 'dataset/c_text.json',
+ 'tokenize': 'dataset/tokenize.pkl',
+ 'train': 'dataset/c_train.json',
+ 'trained': '',
+ 'trainval': 'dataset/c_trainval.json',
+ 'val': 'dataset/c_val.json'}
+==========end============
+Number of devices: 1
+[+] loading config     : model/20230127_nia_v8668_58324_0.6341378688812256_0.6994248032569885/config.json
+{'MAX_VOCAB_SIZE': 2000000, 'SEQ_LENGTH': 25, 'BATCH_SIZE': 64, 'SHUFFLE_DIM': 512, 'EMBED_DIM': 512, 'FF_DIM': 1024, 'NUM_HEADS': 6, 'EPOCHS': 30, 'VOCAB_SIZE': 8668}
+[+] loading tokenizer  : model/20230127_nia_v8668_58324_0.6341378688812256_0.6994248032569885/tokenizer
+[+] get inference model: model/20230127_nia_v8668_58324_0.6341378688812256_0.6994248032569885/cofnig.json
+[+] loading weight     : model/20230127_nia_v8668_58324_0.6341378688812256_0.6994248032569885/model_weight.h5
+[+] loading test data  : dataset/c_test.json
+BLEU-1: 77.86 %
+BLEU-2: 67.43 %
+BLEU-3: 57.44 %
+BLEU-4: 43.81 %
+[-] efficientnetb0 deleted.
+
+elapsed: 4444.62 sec
+[-] TransformerEncoderBlock deleted.
+[-] TransformerDecoderBlock deleted.
+[-] PositionalEmbedding deleted.
+[-] ImageCaptioningModel deleted.

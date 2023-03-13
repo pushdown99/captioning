@@ -1,5 +1,6 @@
 # Prerequisites
 *.d
+*.log
 *.gz
 
 dataset.*/
@@ -49,6 +50,8 @@ tf2/
 bak/
 model/
 temp/
+dataset/*.json
+dataset/*.pkl
 dataset/COCO
 dataset/GENOME
 dataset/NIA

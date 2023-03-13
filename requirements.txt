@@ -12,3 +12,4 @@ fire
 gensim
 tabulate
 GPUtil
+jupyter
