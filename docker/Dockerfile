@@ -20,7 +20,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
 RUN python -m pip install --upgrade pip
 
-RUN pip install tensorflow colorama easydict
+RUN pip install tensorflow==2.11.0 colorama easydict
 RUN pip install tqdm ipykernel nltk ipdb matplotlib pandas climage fire
 
 ADD captioning /captioning

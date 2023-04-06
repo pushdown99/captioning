@@ -12,7 +12,7 @@ run()
         mkdir -p docker/${name}
         cp -r dataset docker/${name}/
         cp -r lib docker/${name}/
-        cp -r sample docker/${name}/
+        cp -r samples docker/${name}/
         cp -r *.py docker/${name}/
         cp -r *.txt docker/${name}/
         cp -r *.sh docker/${name}/
@@ -24,7 +24,7 @@ run()
         ;;
     run)
         host="${name}-P${port}"
-        sudo docker run -p ${port}:${port}/tcp --name ${host} -h ${host} --ipc=host --gpus all --mount type=bind,source=${work}/dataset,target=/${name}/dataset --mount type=bind,source=${work}/output,target=/${name}/output --mount type=bind,source=${work}/nia,target=/${name}/nia -it --rm --runtime=nvidia pushdown99/${name} bash 
+        sudo docker run -p ${port}:${port}/tcp --name ${host} -h ${host} --ipc=host --gpus all --mount type=bind,source=${work}/dataset,target=/${name}/dataset --mount type=bind,source=${work}/output,target=/${name}/model --mount type=bind,source=${work}/nia,target=/${name}/nia -it --rm --runtime=nvidia pushdown99/${name} bash 
         ;;
     *)
         echo ""

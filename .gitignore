@@ -46,6 +46,7 @@ dataset.*/
 
 *.ipynb
 
+info3/
 tf2/
 bak/
 model/

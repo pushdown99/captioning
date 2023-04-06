@@ -11,7 +11,7 @@ num_gpus    = len(tf.config.list_physical_devices('GPU'))
 num_workers = num_gpus * 4
 
 class Config:
-    data = 'coco'
+    data = 'nia'
     data_dir = 'dataset'
     captions = join(data_dir, 'captions.json')
     trainval = join(data_dir, 'c_trainval.json')
@@ -25,7 +25,7 @@ class Config:
 
     model = 'efficientnetb0'
     epoch = 30
-    n_caption = 5 #
+    n_caption = 10 #
 
     num_workers      = num_workers
     test_num_workers = num_workers
