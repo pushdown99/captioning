@@ -6,6 +6,7 @@ import json
 import time
 import codecs
 import matplotlib
+import datetime
 import sys, platform
 from tqdm import tqdm
 from glob import glob
@@ -86,13 +87,45 @@ def train (**kwargs):
 
 ##########################################################
 
+
+def current ():
+  return  datetime.datetime.now()
+
+def line1_80 ():
+  return '--------------------------------------------------------------------------------'
+
+def line2_80 ():
+  return '================================================================================'
+
+def start (argv):
+  t = time.process_time()
+
+  command = list()
+  command.append ('python')
+  command += argv
+
+  print (current(), line1_80())
+  print (current(), '[Run] $', ' '.join(command))
+  print (current(), line1_80())
+
+  return t
+
+def stop (t):
+  print ('')
+  print (current(), line1_80())
+  print (current(), '[End]')
+  print (current(), line1_80())
+
+  elapsed = time.process_time() - t
+  print ('')
+  print ('Total elapsed: {:.2f} sec'.format(elapsed))
+  print ('')
+
 if __name__ == '__main__':
-  _t = time.process_time()
+  t = start (sys.argv)
   print ('[+] Information: {}'.format(tf_info()))
 
   import fire
   fire.Fire()
 
-  _elapsed = time.process_time() - _t
-  print ('')
-  print ('elapsed: {:.2f} sec'.format(_elapsed))
+  stop (t)

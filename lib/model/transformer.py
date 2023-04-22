@@ -8,7 +8,7 @@ import codecs
 import pandas as pd
 import time
 import datetime
-from os.path import join,isfile
+from os.path import join, isfile, basename, relpath, realpath, abspath, exists
 
 from tensorflow.keras import layers
 from tensorflow import keras
@@ -308,6 +308,10 @@ class TRANSFORMER:
     self.strategy = tf.distribute.MultiWorkerMirroredStrategy()
     print('Number of devices: {}'.format(self.strategy.num_replicas_in_sync))
 
+    self.statistics   = dict () 
+    print ('[+] loading statistics :', opt.result)
+    self.result       = json.load(codecs.open(opt.result,  'r', 'utf-8-sig'))
+
   def tokenize (self, data, max_vocab_size, seq_length):
     if not isfile (opt.tokenize):
       text_dataset = tf.data.Dataset.from_tensor_slices (data)
@@ -492,6 +496,34 @@ class TRANSFORMER:
     print('Prediction: %s' %(caption))
     return caption
 
+  def current (self):
+    return  datetime.datetime.now()
+
+  def line1_80 (self):
+    return '--------------------------------------------------------------------------------'
+
+  def line2_80 (self):
+    return '================================================================================'
+
+  def print_bleu (self, ends = False, f = ''):
+    bleu1 = self.bleu1/self.bleuc
+    bleu2 = self.bleu2/self.bleuc
+    bleu3 = self.bleu3/self.bleuc
+    bleu4 = self.bleu4/self.bleuc
+
+    if ends == False:
+        print (self.current(), 'Scores | {:6s}  {:6s}  {:6s}  {:6s}    | {:30s}'.format( 'bleu-1', 'bleu-2', 'bleu-3', 'bleu-4', 'latest image (for caption predict)'))
+        print (self.current(), self.line1_80())
+        print (self.current(), 'Scores | {:6.2f}% {:6.2f}% {:6.2f}% {:6.2f}%   | {:30s}'.format( bleu1, bleu2, bleu3, bleu4, f))
+    else:
+        print ('')
+        print (self.current(), '* Final BLEU Scores for K-Vision dataset')
+        print (self.current(), self.line2_80())
+        print (self.current(), 'BLEU   | {:6s}  {:6s}  {:6s}  {:6s} '.format( 'BLEU-1', 'BLEU-2', 'BLEU-3', 'BLEU-4'))
+        print (self.current(), self.line1_80())
+        print (self.current(), 'Scores | {:6.2f}% {:6.2f}% {:6.2f}% {:6.2f}%'.format( bleu1, bleu2, bleu3, bleu4))
+        print (self.current(), self.line2_80())
+
   def evaluate (self, path, display = False):
     print ('[+] loading config     :', path + 'config.json')
     with open(join(path,'config.json')) as f:
@@ -519,7 +551,7 @@ class TRANSFORMER:
     self.bleu3 = 0.0
     self.bleu4 = 0.0
 
-    for k in tqdm(tests):
+    for i, k in enumerate(tqdm(tests)):
       actual, predicted = list(), list()
       cap = self.generate_caption (k, model, tokenizer, SEQ_LENGTH)
       inf = [d.split() for d in tests[k]]
@@ -531,12 +563,36 @@ class TRANSFORMER:
       predicted.append (cap.split())
       actual.append (inf)
 
-      self.calculate_scores(k, actual, predicted)
+      p, a, b1, b2, b3, b4 = self.calculate_scores (k, actual, predicted)
 
-    print ('BLEU-1: {:.2f} %'.format(self.bleu1/self.bleuc))
-    print ('BLEU-2: {:.2f} %'.format(self.bleu2/self.bleuc))
-    print ('BLEU-3: {:.2f} %'.format(self.bleu3/self.bleuc))
-    print ('BLEU-4: {:.2f} %'.format(self.bleu4/self.bleuc))
+      if (i % 15) == 0 and i > 0:
+        self.print_bleu (False, basename(k))
+
+      # for test
+      #if i > 100:
+      #  break
+
+    # side dish {'total': 21081, 'train': 17, 'bleuc': 1, 'bleu1': 55.55555555555556, 'bleu2': 12.352531728062594, 'bleu3': 8.199313852448714, 'bleu4': 3.8479586262774257}
+    print ('')
+    print (self.current(), '* BLEU Scores per Categories (K-Vision dataset)')
+    print (self.current(), self.line2_80())
+    print (self.current(), '{:20s} {:8s} {:8s} {:6s}  {:6s}  {:6s}  {:6s} '.format('Category', '#Dataset', '#NUMBER', 'BLEU-1', 'BLEU-2', 'BLEU-3', 'BLEU-4'))
+    print (self.current(), self.line1_80())
+    for k, v in self.statistics.items():
+      bleuc = v['bleuc']
+      bleu1 = v['bleu1']/v['bleuc']
+      bleu2 = v['bleu2']/v['bleuc']
+      bleu3 = v['bleu3']/v['bleuc']
+      bleu4 = v['bleu4']/v['bleuc']
+      print (self.current(), '{:20s} {:8d} {:8d} {:6.2f}% {:6.2f}% {:6.2f}% {:6.2f}%'.format(k, v['total'], bleuc, bleu1, bleu2, bleu3, bleu4))
+    print (self.current(), self.line2_80())
+
+    self.print_bleu (True)
+
+    #print ('BLEU-1: {:.2f} %'.format(self.bleu1/self.bleuc))
+    #print ('BLEU-2: {:.2f} %'.format(self.bleu2/self.bleuc))
+    #print ('BLEU-3: {:.2f} %'.format(self.bleu3/self.bleuc))
+    #print ('BLEU-4: {:.2f} %'.format(self.bleu4/self.bleuc))
 
     json.dump(self.scores, open(join(opt.data_dir, 'scores.json'), 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 
@@ -603,7 +659,7 @@ class TRANSFORMER:
 
   # Calculate BLEU score
   def calculate_scores (self, path, actual, predicted, display = False):
-    if ' '.join (predicted[0]) == '': return
+    if ' '.join (predicted[0]) == '': return None, None, None, None, None, None
 
     smooth = SmoothingFunction ().method4
     bleu1 = corpus_bleu (actual, predicted, weights=(1.0, 0, 0, 0),           smoothing_function=smooth)*100
@@ -616,6 +672,31 @@ class TRANSFORMER:
       print ('BLEU-2: %f' % bleu2)
       print ('BLEU-3: %f' % bleu3)
       print ('BLEU-4: %f' % bleu4)
+
+    if opt.data == 'nia':
+      id = basename(path).split('_')[0]+'_'+basename(path).split('_')[1]
+    else:
+      id = basename(path).split('.')[0]
+
+    if not id in self.result['evals']:
+      print ('not found:', id)
+    else:
+      for c in self.result['evals'][id]:
+        if not c in self.statistics:
+          self.statistics[c] = dict ()
+          self.statistics [c]['total'] = self.result['stats'][c]['total']
+          self.statistics [c]['train'] = self.result['stats'][c]['train']
+          self.statistics [c]['bleuc'] = 0
+          self.statistics [c]['bleu1'] = 0
+          self.statistics [c]['bleu2'] = 0
+          self.statistics [c]['bleu3'] = 0
+          self.statistics [c]['bleu4'] = 0
+
+        self.statistics [c]['bleuc'] += 1
+        self.statistics [c]['bleu1'] += bleu1
+        self.statistics [c]['bleu2'] += bleu2
+        self.statistics [c]['bleu3'] += bleu3
+        self.statistics [c]['bleu4'] += bleu4
 
     self.bleuc += 1
     self.bleu1 += bleu1
@@ -630,6 +711,8 @@ class TRANSFORMER:
     score['actual']     = list ([' '.join (d) for d in actual[0]])
     self.scores.append (score)
 
+    return score['predicted'], score['actual'], bleu1, bleu2, bleu3, bleu4
+
 
 #  # evaluate the skill of the model
 #  def evaluate_model (self, model, descriptions, features, tokenizer, max_length):
@@ -643,7 +726,7 @@ class TRANSFORMER:
 #      actual.append(references)
 #      predicted.append(yhat.split())
 #    print('Sampling:')
-#    self.calculate_scores(path, actual, predicted)
+#    self.calculate_scores (path, actual, predicted)
 
 #  def evaluate (self, filename, max_length):
 #    test = load(open('data/{}_test.pkl'.format(self.dataname), 'rb'))

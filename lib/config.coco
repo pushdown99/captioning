@@ -12,7 +12,8 @@ num_workers = num_gpus * 4
 
 class Config:
     data = 'coco'
-    data_dir = 'dataset/COCO/'
+    data_dir = 'dataset'
+    result   = join(data_dir, 'result.json')
     captions = join(data_dir, 'captions.json')
     trainval = join(data_dir, 'c_trainval.json')
     train    = join(data_dir, 'c_train.json')
