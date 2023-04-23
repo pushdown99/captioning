@@ -11,6 +11,7 @@ run()
         rm -rf docker/${name}
         mkdir -p docker/${name}
 #        cp -r dataset docker/${name}/
+        cp -r info3/log docker/${name}/
         cp -r info3/dataset docker/${name}/
         cp -r info3/images docker/${name}/
         cp -r info3/model docker/${name}/
