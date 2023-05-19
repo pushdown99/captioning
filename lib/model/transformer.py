@@ -511,6 +511,7 @@ class TRANSFORMER:
     bleu3 = self.bleu3/self.bleuc
     bleu4 = self.bleu4/self.bleuc
 
+    print ()
     if ends == False:
         print (self.current(), 'Scores | {:6s}  {:6s}  {:6s}  {:6s}    | {:30s}'.format( 'bleu-1', 'bleu-2', 'bleu-3', 'bleu-4', 'latest image (for caption predict)'))
         print (self.current(), self.line1_80())
@@ -565,8 +566,9 @@ class TRANSFORMER:
 
       p, a, b1, b2, b3, b4 = self.calculate_scores (k, actual, predicted)
 
-      if (i % 15) == 0 and i > 0:
-        self.print_bleu (False, basename(k))
+#      if (i % 15) == 0 and i > 0:
+#        self.print_bleu (False, basename(k))
+      self.print_bleu (False, basename(k))
 
       # for test
       #if i > 100:
@@ -679,7 +681,7 @@ class TRANSFORMER:
       id = basename(path).split('.')[0]
 
     if not id in self.result['evals']:
-      print ('not found:', id)
+      print ('not found: ', id)
     else:
       for c in self.result['evals'][id]:
         if not c in self.statistics:
