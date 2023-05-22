@@ -10,11 +10,10 @@ run()
     build)
         rm -rf docker/${name}
         mkdir -p docker/${name}
-#        cp -r dataset docker/${name}/
-        cp -r info3/log docker/${name}/
-        cp -r info3/dataset docker/${name}/
-        cp -r info3/images docker/${name}/
-        cp -r info3/model docker/${name}/
+        mv info3/log docker/${name}/
+        mv info3/dataset docker/${name}/
+        mv info3/images docker/${name}/
+        mv info3/model docker/${name}/
         cp -r lib docker/${name}/
         cp -r samples docker/${name}/
         cp -r *.py docker/${name}/
@@ -22,6 +21,10 @@ run()
         cp -r *.sh docker/${name}/
         cp -r *.ipynb docker/${name}/
         sudo docker build -t pushdown99/${name} docker
+        mv docker/${name}/log info3/
+        mv docker/${name}/dataset info3/
+        mv docker/${name}/images info3/
+        mv docker/${name}/model info3/
         ;;
     push)
         sudo docker push pushdown99/${name}
